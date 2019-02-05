@@ -1,0 +1,22 @@
+{
+  "name": "nodechat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grimm004/ProgNodeChat.git"
+  },
+  "author": "wcrr51",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/grimm004/ProgNodeChat/issues"
+  },
+  "homepage": "https://github.com/grimm004/ProgNodeChat#readme",
+  "dependencies": {
+    "express": "^4.16.4"
+  }
+}
