@@ -1,3 +1,6 @@
+# Firebase Configuration
+config_firebase.js
+
 # Logs
 logs
 *.log
