@@ -1,7 +1,8 @@
 "use strict";
-const express = require("express");
-const JsonDB = require("node-json-db");
-
+var express = require("express");
+var firebase = require("firebase");
+var firebaseConfig = require("./config_firebase");
+firebase.initializeApp(firebaseConfig);
 
 class ChatApplication {
     constructor(port, public_folder = "public", databaseFile = "db") {
@@ -11,7 +12,6 @@ class ChatApplication {
         
         this._port = port;
         this._databaseFile = databaseFile;
-        this._database = new JsonDB(this._databaseFile, true, true);
         
         this._app.post("/login", (req, res) => {
             console.log(req.body);
@@ -20,10 +20,6 @@ class ChatApplication {
     
     get Port() {
         return this._port;
-    }
-    
-    set Port(port) {
-        this._port = port;
     }
     
     start() {
