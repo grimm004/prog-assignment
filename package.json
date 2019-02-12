@@ -19,6 +19,7 @@
   "homepage": "https://github.com/grimm004/ProgNodeChat#readme",
   "dependencies": {
     "express": "^4.16.4",
-    "firebase": "^5.8.2"
+    "firebase": "^5.8.2",
+    "nodemon": "^1.18.10"
   }
 }

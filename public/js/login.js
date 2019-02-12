@@ -2,20 +2,18 @@
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("loginButton").addEventListener("click", (event) => {
-        let usernameInput = document.getElementById("usernameInput");
+        let emailInput = document.getElementById("emailInput");
         let passwordInput = document.getElementById("passwordInput");
         
-        if (usernameInput.value != "" && passwordInput.value != "") {
-            let username = usernameInput.value;
+        if (emailInput.value != "" && passwordInput.value != "") {
+            let email = uemailInput.value;
             let password = passwordInput.value;
             
-            usernameInput.value = "";
+            emailInput.value = "";
             passwordInput.value = "";
-            
-            var request = new XMLHttpRequest();
-            request.open("POST", "login", true);
-            request.setRequestHeader("Content-type", "text/json");
-            request.send(JSON.stringify({ username: username, password: password }));
+
+            fetch("/login", { method: "POST", mode: "cors", cache: "no-cache", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email, password: password }) })
+                .then(response => console.log("Response..."));
         }
     });
 });
