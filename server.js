@@ -1,6 +1,7 @@
 "use strict";
+var environment = process.env.NODE_ENV || 'development';
 var express = require("express");
-var firebase = require("firebase");
+var firebase = environment === "production" ? require("firebase") : require("firebase-nightlight");
 var firebaseConfig = require("./config_firebase");
 firebase.initializeApp(firebaseConfig);
 
