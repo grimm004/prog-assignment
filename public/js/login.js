@@ -6,14 +6,17 @@ document.addEventListener("DOMContentLoaded", () => {
         let passwordInput = document.getElementById("passwordInput");
         
         if (emailInput.value != "" && passwordInput.value != "") {
-            let email = uemailInput.value;
+            let email = emailInput.value;
             let password = passwordInput.value;
             
             emailInput.value = "";
             passwordInput.value = "";
 
             fetch("/login", { method: "POST", mode: "cors", cache: "no-cache", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email, password: password }) })
-                .then(response => console.log("Response..."));
+                .then(response => {
+                    console.log(response);
+                    window.location.replace("/index");
+                });
         }
     });
 });
