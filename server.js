@@ -1,9 +1,13 @@
 "use strict";
 var environment = process.env.NODE_ENV || 'development';
 var express = require("express");
-var firebase = environment === "production" ? require("firebase") : require("firebase-nightlight");
+if (environment === "production") {
+    var firebase = require("firebase");
+    firebase.initializeApp(firebaseConfig);
+} else {
+    var firebase = require("firebase-nightlight").Mock();
+}
 var firebaseConfig = require("./config_firebase");
-firebase.initializeApp(firebaseConfig);
 
 class ChatApplication {
     constructor(port, public_folder = "public") {

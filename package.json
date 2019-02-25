@@ -20,7 +20,8 @@
   "dependencies": {
     "express": "^4.16.4",
     "firebase": "^5.8.2",
-    "nodemon": "^1.18.10"
+    "nodemon": "^1.18.10",
+    "websocket": "^1.0.28"
   },
   "devDependencies": {
     "firebase-nightlight": "^3.1.0"
