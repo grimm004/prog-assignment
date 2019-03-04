@@ -1,5 +1,7 @@
 "use strict";
 
+$('.alert').alert();
+
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("registerButton").addEventListener("click", (event) => {
         let emailInput = document.getElementById("emailInput");
