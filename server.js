@@ -23,22 +23,30 @@ class ChatApplication {
 
             firebase.auth().signInWithEmailAndPassword(req.body.email, req.body.password)
             .then(function(user) {
-                res.status(200);
+                console.log("Success...");
+                res.json({ loggedIn: true, errorCode: "" });
             })
             .catch(function(error) {
                 var errorCode = error.code;
                 var errorMessage = error.message;
-                console.log("Error loggin in account: " + errorCode + ", " + errorMessage);
+                console.log("Error logging in: " + errorCode + ", " + errorMessage);
+                res.json({ loggedIn: false, errorCode: errorCode });
             });
         });
 
         this._app.post("/register", (req, res) => {
             console.log("Register Request: " + req.body.email);
 
-            firebase.auth().createUserWithEmailAndPassword(req.body.email, req.body.password).catch(function(error) {
+            firebase.auth().createUserWithEmailAndPassword(req.body.email, req.body.password)
+            .then(function(user) {
+                console.log("Success...");
+                res.json({ registered: true, errorCode: "" });
+            })
+            .catch(function(error) {
                 var errorCode = error.code;
                 var errorMessage = error.message;
-                console.log("Error registering account: " + errorCode + ", " + errorMessage);
+                console.log("Error registering: " + errorCode + ", " + errorMessage);
+                res.json({ registered: false, errorCode: errorCode });
             });
 
 
