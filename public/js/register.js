@@ -14,6 +14,14 @@ document.addEventListener("DOMContentLoaded", () => {
         submit();
     });
 
+    fetch("/status", { method: "POST", mode: "cors", cache: "no-cache", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({  }) })
+        .then(response => 
+            response.json().then(function(data) {
+                if (data.loggedIn) {
+                    window.location.replace("/");
+                }
+            }));
+
     function submit() {
         let emailInput = document.getElementById("emailInput");
         let passwordInput = document.getElementById("passwordInput");
