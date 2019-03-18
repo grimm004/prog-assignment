@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.loggedIn) {
                     console.log("Logged in");
                     
-                    document.getElementById("loggedIn").innerHTML = "Logged in";
+                    document.getElementById("loggedIn").innerHTML = "Logged in as " + data.user.name + "...";
 
                 } else {
                     window.location.replace("/login");
