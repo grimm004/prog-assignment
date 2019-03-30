@@ -20,8 +20,7 @@ class ChatApplication {
         this._app.use(express.json());
 
         this._app.post("/login", (req, res) => {
-            console.log("Login Request: " + req.body.email);
-
+            console.log("Login Requested");
             firebase.auth().signInWithEmailAndPassword(req.body.email, req.body.password)
             .then(function(user) {
                 console.log("Success...");
@@ -55,6 +54,18 @@ class ChatApplication {
             console.log("Status Request...");
             var user = firebase.auth().currentUser;
             res.json({ loggedIn: user != null });
+        });
+
+        this._app.post("/logout", (req, res) => {
+            console.log("Logout Request...");
+            firebase.auth().signOut()
+            .then(function() {
+                
+            })
+            .catch(function(error) {
+                console.log(error);
+            });
+            res.status(200).json({ });
         });
     }
 

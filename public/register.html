@@ -1,40 +1,49 @@
 <!DOCTYPE html>
 
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <title>Chat Register</title>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-        <link rel="stylesheet" href="/css/style.css">
-        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-        <script src="/js/register.js"></script>
-    </head>
+    <title>Chat Register</title>
 
-    <body>
-        <div id="register" class="container text-center">
-            <div class="row form-padding">
-                <div class="col-md-offset-5 col-md-2"><h3><b>Register</b></h3></div>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+        crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/register.js"></script>
+</head>
+
+<body class="text-center">
+    <!-- Register form adapted from https://getbootstrap.com/docs/4.0/examples/sign-in/ -->
+    <form id="registerForm" class="form-login-register needs-validation">
+        <h1 class="h3 mb-3 font-weight-normal">Register</h1>
+        <label for="emailInput" class="sr-only">Email address</label>
+        <input type="email" id="emailInput" class="form-control" placeholder="Email address" required autofocus>
+        <label for="passwordInput" class="sr-only">Password</label>
+        <input type="password" id="passwordInput" class="form-control" placeholder="Password" required minlength="6">
+        <label for="confirmPasswordInput" class="sr-only">Password</label>
+        <input type="password" id="confirmPasswordInput" class="form-control" placeholder="Confirm Password" required minlength="6">
+
+        <div class="row">
+            <div class="col">
+                <a href="login"><button class="btn btn-warning float-left btn-block" type="button">Sign in</button></a>
             </div>
-            <div class="row form-padding">
-                <div class="col-md-offset-5 col-md-1">Email</div>
-                <div class="col-md-1"><input id="emailInput" type="text"/></div>
-            </div>
-            <div class="row form-padding">
-                <div class="col-md-offset-5 col-md-1">Password</div>
-                <div class="col-md-1"><input id="passwordInput" type="password"/></div>
-            </div>
-            <div class="row form-padding">
-                <div class="col-md-offset-5 col-md-1">Confirm Password</div>
-                <div class="col-md-1"><input id="confirmPasswordInput" type="password"/></div>
-            </div>
-            <div class="row form-padding">
-                <div class="col-md-offset-5 col-md-2"><input id="registerButton" type="button" class="btn btn-primary" value="Submit"/></div>
+            <div class="col">
+                <button class="btn btn-primary float-right btn-block" id="registerButton" type="submit">Register</button>
             </div>
         </div>
-    </body>
+    </form>
+</body>
+
 </html>
