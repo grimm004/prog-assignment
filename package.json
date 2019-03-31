@@ -23,7 +23,7 @@
     "websocket": "^1.0.28"
   },
   "devDependencies": {
-    "firebase-nightlight": "^3.1.0",
+    "firebase-mock": "^2.2.10",
     "nodemon": "^1.18.10"
   }
 }

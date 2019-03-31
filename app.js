@@ -8,7 +8,7 @@ if (environment === "production" || forceOnlineFirebase) {
     var firebaseConfig = require("./config_firebase");
     firebase.initializeApp(firebaseConfig);
 } else {
-    var firebase = new require("firebase-nightlight").Mock();
+    var firebase = new require("firebase-mock").Mock();
 }
 
 class ChatApplication {
