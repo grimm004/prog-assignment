@@ -16,21 +16,11 @@ if (environment === "production" || forceOnlineFirebase) {
     var mockdatabase = new forebaseMock.MockFirebase();
     var mockmessaging = new forebaseMock.MockMessaging();
     var firebase = new forebaseMock.MockFirebaseSdk(
-        (path) => {
-            return path ? mockdatabase.child(path) : mockdatabase;
-        },
-        () => {
-            return mockauth;
-        },
-        () => {
-            return null;
-        },
-        () => {
-            return null;
-        },
-        () => {
-            return mockmessaging;
-        }
+        (path) => { return path ? mockdatabase.child(path) : mockdatabase; },
+        () => { return mockauth; },
+        () => { return null; },
+        () => { return null; },
+        () => { return mockmessaging; }
     );
 }
 
