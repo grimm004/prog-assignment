@@ -4,7 +4,7 @@
   "description": "Online chat program.",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "nodemon server.js"
   },
   "repository": {
@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "firebase-mock": "^2.2.10",
+    "jest": "^24.5.0",
     "nodemon": "^1.18.10"
   }
 }

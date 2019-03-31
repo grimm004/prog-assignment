@@ -1,12 +1,12 @@
 "use strict";
 
-$(function() {
-    $("#loginForm").submit(function(event) {
+$(function () {
+    $("#loginForm").submit(function (event) {
         event.preventDefault();
 
         fetch("/login", { method: "POST", mode: "cors", cache: "no-cache", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: $("#emailInput").val(), password: $("#passwordInput").val() }) })
-            .then(response => 
-                response.json().then(function(data) {
+            .then(response =>
+                response.json().then(function (data) {
                     $("#passwordInput").val("");
                     if (data.loggedIn) {
                         $("#emailInput").val("");
@@ -27,9 +27,9 @@ $(function() {
                 }));
     });
 
-    fetch("/status", { method: "POST", mode: "cors", cache: "no-cache", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({  }) })
-        .then(response => 
-            response.json().then(function(data) {
+    fetch("/status", { method: "POST", mode: "cors", cache: "no-cache", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) })
+        .then(response =>
+            response.json().then(function (data) {
                 if (data.loggedIn) window.location.replace("/");
             }));
 });
