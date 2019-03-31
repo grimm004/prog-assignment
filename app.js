@@ -1,5 +1,8 @@
 "use strict";
 
+const noLoginRequired = true;
+const testUser = { uid: "123456789", email: "test@test.com", name: "Max Grimmett" };
+
 const forceOnlineFirebase = true;
 var environment = process.env.NODE_ENV || 'development';
 var express = require("express");
@@ -52,8 +55,8 @@ class ChatApplication {
 
         this._app.post("/status", (req, res) => {
             console.log("Status Request...");
-            var user = firebase.auth().currentUser;
-            res.json({ loggedIn: user != null });
+            var user = noLoginRequired ? testUser : firebase.auth().currentUser;
+            res.json({ loggedIn: user != null, user: user });
         });
 
         this._app.post("/logout", (req, res) => {
@@ -71,6 +74,10 @@ class ChatApplication {
 
     get Port() {
         return this._port;
+    }
+
+    get ExpressInstance() {
+        return this._app;
     }
 
     start() {
