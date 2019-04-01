@@ -1,28 +1,16 @@
 "use strict";
 
-const noLoginRequired = false;
-const testUser = { uid: "123456789", email: "test@test.com", name: "Max Grimmett" };
-
-const forceOnlineFirebase = false;
+const forceOnlineFirebase = true;
 var environment = process.env.NODE_ENV || 'development';
 var express = require("express");
+var socket = require("socket.io");
+var firebase = null;
 if (environment === "production" || forceOnlineFirebase) {
-    var firebase = require("firebase");
+    firebase = require("firebase");
     var firebaseConfig = require("./config_firebase");
     firebase.initializeApp(firebaseConfig);
-} else {
-    var forebaseMock = require("firebase-mock");
-    var mockauth = new forebaseMock.MockAuthentication();
-    var mockdatabase = new forebaseMock.MockFirebase();
-    var mockmessaging = new forebaseMock.MockMessaging();
-    var firebase = new forebaseMock.MockFirebaseSdk(
-        (path) => { return path ? mockdatabase.child(path) : mockdatabase; },
-        () => { return mockauth; },
-        () => { return null; },
-        () => { return null; },
-        () => { return mockmessaging; }
-    );
-}
+} else
+    firebase = require("./mock_firebase");
 
 class ChatApplication {
     constructor(port, public_folder = "public") {
@@ -35,15 +23,13 @@ class ChatApplication {
         this._app.post("/login", (req, res) => {
             console.log("Login Requested");
             firebase.auth().signInWithEmailAndPassword(req.body.email, req.body.password)
-                .then(function (user) {
+                .then(user => {
                     console.log("Success...");
-                    res.json({ loggedIn: true, errorCode: "", uid: user.user.uid });
+                    res.json({ loggedIn: user != null, errorCode: "" });
                 })
                 .catch(function (error) {
-                    var errorCode = error.code;
-                    var errorMessage = error.message;
-                    console.log("Error logging in: " + errorCode + ", " + errorMessage);
-                    res.json({ loggedIn: false, errorCode: errorCode, uid: "" });
+                    console.log("Error logging in '" + req.body.email + "': " + error.code + ", " + error.message);
+                    res.json({ loggedIn: false, errorCode: error.code });
                 });
         });
 
@@ -51,35 +37,20 @@ class ChatApplication {
             console.log("Register Request: " + req.body.email);
 
             firebase.auth().createUserWithEmailAndPassword(req.body.email, req.body.password)
-                .then(function (user) {
-                    console.log("Success...");
-                    res.json({ registered: true, errorCode: "", uid: user.user.uid });
-                })
+                .then(() => res.json({ registered: true, errorCode: "" }))
                 .catch(function (error) {
-                    var errorCode = error.code;
-                    var errorMessage = error.message;
-                    console.log("Error registering: " + errorCode + ", " + errorMessage);
-                    res.json({ registered: false, errorCode: errorCode, uid: "" });
+                    console.log("Error registering '" + req.body.email + "': " + error.code + ", " + error.message);
+                    res.json({ registered: false, errorCode: error.code });
                 });
         });
 
-        this._app.post("/status", (req, res) => {
-            console.log("Status Request...");
-            var user = noLoginRequired ? testUser : firebase.auth().currentUser;
-            res.json({ loggedIn: user != null, user: user });
-        });
+        this._app.post("/status",
+            (_, res) => res.json({ loggedIn: firebase.auth().currentUser != null }));
 
-        this._app.post("/logout", (req, res) => {
-            console.log("Logout Request...");
-            firebase.auth().signOut()
-                .then(function () {
-
-                })
-                .catch(function (error) {
-                    console.log(error);
-                });
-            res.status(200).json({});
-        });
+        this._app.post("/logout",
+            (_, res) => firebase.auth().signOut()
+                .then(() => res.status(200).json({}))
+                .catch(error => console.log("Error handling logout request: " + error)));
     }
 
     get Port() {

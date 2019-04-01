@@ -1,46 +1,38 @@
 "use strict";
 
-$(function() {
+$(function () {
     $("#confirmPasswordInput").on('input', () =>
         $("#confirmPasswordInput")[0].setCustomValidity($("#passwordInput").val() == $("#confirmPasswordInput").val() ? "" : "Passwords do not match..."));
 
-    $("#registerForm").submit(function(event) {
+    $("#registerForm").submit(function (event) {
         event.preventDefault();
-
-        if ($("#passwordInput").val() == $("#confirmPasswordInput").val()) {
-            $("#confirmPasswordInput")[0].setCustomValidity("");
-
-            fetch("/register", { method: "POST", mode: "cors", cache: "no-cache", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: $("#emailInput").val(), password: $("#passwordInput").val() }) })
-                .then(response =>
-                    response.json().then(function(data) {
-                        console.log(data);
-                        if (data.registered) {
-                            console.log("Registered");
-            
-                            $("#emailInput").val("");;
-                            $("#passwordInput").val("");
-                            $("#confirmPasswordInput").val("");
-
-                            window.location.replace("/");
-                        } else {
-                            switch (data.errorCode) {
-                                case "auth/email-already-in-use":
-                                    alert("Email already in use.");
-                                    break;
-                                default:
-                                    alert("Error registering.");
-                                    break;
-                            }
-                        }
-                    }));
-        } else {
-            console.log("Passwords do not match...");
-        }
+        register($("#emailInput").val(), $("#passwordInput").val(),
+            () => window.location.replace("/"),
+            errorCode => {
+                switch (errorCode) {
+                    case "auth/email-already-in-use":
+                        console.log("Email already in use.");
+                        showAlert("danger", "Register Failed", "Email already in use.");
+                        break;
+                    default:
+                        console.log("Error registering: " + errorCode);
+                        showAlert("danger", "Register Failed", "Error registering: " + errorCode);
+                        break;
+                }
+            });
     });
 
-    fetch("/status", { method: "POST", mode: "cors", cache: "no-cache", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({  }) })
-        .then(response => 
-            response.json().then(function(data) {
-                if (data.loggedIn) window.location.replace("/");
-            }));
+    function showAlert(type, title, message) {
+        $("div#alerts").html(`
+        <div class="alert alert-${ type} alert-dismissible fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <strong>${ title}</strong> ${message}
+        </div>
+        `);
+    }
+});
+
+verifyLogin(loggedIn => {
+    if (loggedIn) window.location.replace("/");
+    else if (autoLogin) window.location.replace("/login");
 });

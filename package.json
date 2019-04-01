@@ -21,7 +21,7 @@
   "dependencies": {
     "express": "^4.16.4",
     "firebase": "^5.8.2",
-    "websocket": "^1.0.28"
+    "socket.io": "^2.2.0"
   },
   "devDependencies": {
     "firebase-mock": "^2.2.10",

@@ -3,33 +3,39 @@
 $(function () {
     $("#loginForm").submit(function (event) {
         event.preventDefault();
-
-        fetch("/login", { method: "POST", mode: "cors", cache: "no-cache", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: $("#emailInput").val(), password: $("#passwordInput").val() }) })
-            .then(response =>
-                response.json().then(function (data) {
-                    $("#passwordInput").val("");
-                    if (data.loggedIn) {
-                        $("#emailInput").val("");
-                        window.location.replace("/");
-                    } else {
-                        switch (data.errorCode) {
-                            case "auth/user-not-found":
-                                alert("Account not found.");
-                                break;
-                            case "auth/wrong-password":
-                                alert("Invalid password.");
-                                break;
-                            default:
-                                alert("Error logging in.");
-                                break;
-                        }
-                    }
-                }));
+        login($("#emailInput").val(), $("#passwordInput").val(),
+            () => window.location.replace("/"),
+            errorCode => {
+                switch (errorCode) {
+                    case "auth/user-not-found":
+                    case "auth/wrong-password":
+                        console.log("Invalid password.");
+                        showAlert("danger", "Login Failed", "Invalid email or password.");
+                        break;
+                    case "auth/too-many-requests":
+                        console.log("Too many requests.");
+                        showAlert("danger", "Login Failed", "Too many requests.");
+                        break;
+                    default:
+                        console.log("Error logging in: " + errorCode);
+                        showAlert("danger", "Login Failed", "Error logging in: " + errorCode);
+                        break;
+                }
+            });
     });
 
-    fetch("/status", { method: "POST", mode: "cors", cache: "no-cache", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) })
-        .then(response =>
-            response.json().then(function (data) {
-                if (data.loggedIn) window.location.replace("/");
-            }));
+    function showAlert(type, title, message) {
+        $("div#alerts").html(`
+        <div class="alert alert-${ type} alert-dismissible fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <strong>${ title}</strong> ${message}
+        </div>
+        `);
+        setTimeout(() => $("div#alerts").html(""), 5000)
+    }
+});
+
+verifyLogin(loggedIn => {
+    if (loggedIn) window.location.replace("/");
+    else if (autoLogin) login("test@test.test", "testtest", () => window.location.replace("/"));
 });

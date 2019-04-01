@@ -9,8 +9,7 @@
     <title>Chat Login</title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
-        crossorigin="anonymous">
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
         integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
         crossorigin="anonymous"></script>
@@ -21,12 +20,15 @@
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/common.js"></script>
     <script src="/js/login.js"></script>
 </head>
 
-<body class="text-center">
+<body class="h-100 text-center">
+    <div id="alerts"></div>
+
     <!-- Login form adapted from https://getbootstrap.com/docs/4.0/examples/sign-in/ -->
-    <form id="loginForm" class="form-login-register needs-validation">
+    <form id="loginForm" class="container form-login-register justify-content-center needs-validation">
         <h1 class="h3 mb-3 font-weight-normal">Sign in</h1>
         <label for="emailInput" class="sr-only">Email address</label>
         <input type="email" id="emailInput" class="form-control" placeholder="Email address" required autofocus>
@@ -35,7 +37,8 @@
 
         <div class="row">
             <div class="col">
-                <a href="register"><button class="btn btn-warning float-left btn-block" type="button">Register</button></a>
+                <a href="register"><button class="btn btn-warning float-left btn-block"
+                        type="button">Register</button></a>
             </div>
             <div class="col">
                 <button class="btn btn-primary float-right btn-block" id="loginButton" type="submit">Sign in</button>
