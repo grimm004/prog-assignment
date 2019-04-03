@@ -19,7 +19,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/login_register.css">
     <script src="/js/common.js"></script>
     <script src="/js/register.js"></script>
 </head>
@@ -27,15 +27,11 @@
 <body class="h-100 text-center">
     <div id="alerts"></div>
 
-    <!-- Register form adapted from https://getbootstrap.com/docs/4.0/examples/sign-in/ -->
-    <form id="registerForm" class="container form-login-register justify-content-center needs-validation">
-        <h1 class="h3 mb-3 font-weight-normal">Register</h1>
-        <label for="emailInput" class="sr-only">Email address</label>
-        <input type="email" id="emailInput" class="form-control" placeholder="Email address" required autofocus>
-        <label for="passwordInput" class="sr-only">Password</label>
-        <input type="password" id="passwordInput" class="form-control" placeholder="Password" required minlength="6">
-        <label for="confirmPasswordInput" class="sr-only">Password</label>
-        <input type="password" id="confirmPasswordInput" class="form-control" placeholder="Confirm Password" required
+    <form id="register-form" class="container form-login-register justify-content-center needs-validation">
+        <h1 class="h3 mb-3">Register</h1>
+        <input type="email" id="email-input" class="form-control" placeholder="Email address" required autofocus>
+        <input type="password" id="password-input" class="form-control" placeholder="Password" required minlength="6">
+        <input type="password" id="confirm-password-input" class="form-control" placeholder="Confirm Password" required
             minlength="6">
 
         <div class="row">
@@ -43,8 +39,7 @@
                 <a href="login"><button class="btn btn-warning float-left btn-block" type="button">Sign in</button></a>
             </div>
             <div class="col">
-                <button class="btn btn-primary float-right btn-block" id="registerButton"
-                    type="submit">Register</button>
+                <button class="btn btn-primary float-right btn-block" type="submit">Register</button>
             </div>
         </div>
     </form>
