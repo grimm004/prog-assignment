@@ -6,32 +6,32 @@ var socketio = require("socket.io");
 
 class ChatApplication {
     constructor(port, public_folder = "public") {
-        this._port = port;
+        this.port = port;
 
-        this._app = express();
-        this._http = http.Server(this._app);
-        this._io = socketio(this._http);
+        this.app = express();
+        this.http = http.Server(this._app);
+        this.io = socketio(this._http);
 
         // Express app setup
         if (public_folder)
-            this._app.use(express.static(public_folder, { extensions: ['html', 'htm'], }));
-        this._app.use(express.json());
+            this.app.use(express.static(public_folder, { extensions: ['html', 'htm'], }));
+        this.app.use(express.json());
     }
 
     get Port() {
-        return this._port;
+        return this.port;
     }
 
     get Express() {
-        return this._app;
+        return this.app;
     }
 
     get SocketIO() {
-        return this._io;
+        return this.io;
     }
 
     start() {
-        this._http.listen(this._port, () => console.log("Started ProgNodeChat server on port " + this.Port + "..."));
+        this.http.listen(this.port, () => console.log("Started ProgNodeChat server on port " + this.port + "..."));
     }
 }
 
