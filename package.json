@@ -20,13 +20,10 @@
   "homepage": "https://github.com/grimm004/ProgNodeChat#readme",
   "dependencies": {
     "express": "^4.16.4",
-    "firebase": "^5.8.2",
-    "firebase-admin": "^7.2.0",
     "socket.io": "^2.2.0"
   },
   "devDependencies": {
     "eslint": "^5.16.0",
-    "firebase-mock": "^2.2.10",
     "jest": "^24.5.0",
     "nodemon": "^1.18.10"
   }
