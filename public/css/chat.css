@@ -1,0 +1,45 @@
+html, body {
+    height: 100%;
+}
+ 
+body {
+    overflow-x: hidden;
+}
+
+.chat-history {
+    max-height: calc(100vh - 95px);
+    overflow-y: auto;
+}
+
+.message-input {
+    background-color: transparent;
+    border: none;
+}
+
+.col-btn {
+    flex: 0 0 75px;
+}
+
+.message {
+    overflow: hidden;
+    display: inline-block;
+    padding-top: 10px;
+    width: 100%;
+}
+
+.message .incoming, .message .outgoing {
+    padding: 10px;
+    max-width: 80%;
+}
+
+.message .incoming {
+    border-radius: 0px 10px 10px 10px;
+    background-color: #5ab0ea;
+    float: left;
+}
+
+.message .outgoing {
+    border-radius: 10px 10px 0px 10px;
+    background-color: #5680e9;
+    float: right;
+}

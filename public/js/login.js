@@ -1,27 +1,10 @@
 "use strict";
 
 $(function () {
-    $("#loginForm").submit(function (event) {
+    $("#login-form").submit(function (event) {
         event.preventDefault();
-        login($("#emailInput").val(), $("#passwordInput").val(),
-            () => window.location.replace("/"),
-            errorCode => {
-                switch (errorCode) {
-                    case "auth/user-not-found":
-                    case "auth/wrong-password":
-                        console.log("Invalid password.");
-                        showAlert("danger", "Login Failed", "Invalid email or password.");
-                        break;
-                    case "auth/too-many-requests":
-                        console.log("Too many requests.");
-                        showAlert("danger", "Login Failed", "Too many requests.");
-                        break;
-                    default:
-                        console.log("Error logging in: " + errorCode);
-                        showAlert("danger", "Login Failed", "Error logging in: " + errorCode);
-                        break;
-                }
-            });
+        var email = $("#email-input").val();
+        var password = $("#password-input").val();
     });
 
     function showAlert(type, title, message) {
@@ -31,11 +14,6 @@ $(function () {
             <strong>${ title}</strong> ${message}
         </div>
         `);
-        setTimeout(() => $("div#alerts").html(""), 5000)
+        setTimeout(() => $("div#alerts").html(""), 5000);
     }
-});
-
-verifyLogin(loggedIn => {
-    if (loggedIn) window.location.replace("/");
-    else if (autoLogin) login("test@test.test", "testtest", () => window.location.replace("/"));
 });

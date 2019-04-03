@@ -1,25 +1,14 @@
 "use strict";
 
 $(function () {
-    $("#confirmPasswordInput").on('input', () =>
-        $("#confirmPasswordInput")[0].setCustomValidity($("#passwordInput").val() == $("#confirmPasswordInput").val() ? "" : "Passwords do not match..."));
+    $("#confirm-password-input").on('input', () =>
+        $("#confirm-password-input")[0].setCustomValidity($("#password-input").val() == $("#confirm-password-input").val() ? "" : "Passwords do not match..."));
 
-    $("#registerForm").submit(function (event) {
+    $("#register-form").submit(function (event) {
         event.preventDefault();
-        register($("#emailInput").val(), $("#passwordInput").val(),
-            () => window.location.replace("/"),
-            errorCode => {
-                switch (errorCode) {
-                    case "auth/email-already-in-use":
-                        console.log("Email already in use.");
-                        showAlert("danger", "Register Failed", "Email already in use.");
-                        break;
-                    default:
-                        console.log("Error registering: " + errorCode);
-                        showAlert("danger", "Register Failed", "Error registering: " + errorCode);
-                        break;
-                }
-            });
+        
+        var email = $("#email-input").val();
+        var password = $("#password-input").val();
     });
 
     function showAlert(type, title, message) {
@@ -30,9 +19,4 @@ $(function () {
         </div>
         `);
     }
-});
-
-verifyLogin(loggedIn => {
-    if (loggedIn) window.location.replace("/");
-    else if (autoLogin) window.location.replace("/login");
 });

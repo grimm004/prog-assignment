@@ -1,14 +1,41 @@
 "use strict";
 
 $(() => {
-    $("#logoutButton").click(() => logout(() => window.location.replace("/login")));
-    $("#submitButton").click(submit);
+    // Handle automatic scrolling
+    $("#chat-history").scroll(() => autoScroll = $("#chat-history").scrollTop() + $("#chat-history").height() >= $("#chat-history")[0].scrollHeight - 1);
 
-    function submit() {
-        sendMessage($("#messageInput").val());
+    var autoScroll = true;
+    function updateScroll() {
+        if (autoScroll)
+            scrollToBottom();
     }
-});
 
-verifyLogin(loggedIn => {
-    if (!loggedIn) window.location.replace("/login");
+    function scrollToBottom() {
+        $("#chat-history").scrollTop($("#chat-history")[0].scrollHeight);
+    }
+
+    scrollToBottom();
+
+    $("#message-form").submit(
+        e => {
+            e.preventDefault();
+
+            var message = $("#message-input").val();
+            if (!isNullOrWhiteSpace(message)) {
+                $("#message-input").val("");
+                sendMessage(message);
+                outputMessage("outgoing", message);
+            }
+        }
+    );
+
+    function sendMessage() {
+        
+    }
+
+    function outputMessage(type, message) {
+        $("#chat-history-column").append(`<div class="message"><div class="${type}">${message}</div></div>`);
+        if (type == "outgoing") scrollToBottom();
+        else updateScroll();
+    }
 });

@@ -1,20 +1,70 @@
 <!DOCTYPE html>
 
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        
-        <title>Chat</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-        <script src="/js/common.js"></script>
-        <script src="js/index.js"></script>
-    </head>
 
-    <body>
-        <button class="btn btn-lg btn-primary" id="logoutButton">Logout</button>
-    </body>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Chat</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="/css/chat.css">
+    <script src="/js/common.js"></script>
+    <script src="js/index.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid h-100 d-flex flex-column bg-dark">
+        <nav class="navbar navbar-expand-sm navbar-dark">
+            <a id="menu-toggle" class="navbar-brand" href="#">Node Chat</a>
+
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbar-collapse">
+                <button id="logout-button" class="btn btn-outline-warning my-2 my-sm-0 ml-auto">Logout</button>
+            </div>
+        </nav>
+
+        <div class="row flex-fill bg-light">
+            <div class="col-sm-3 border-right d-none d-sm-block">
+                Sidebar
+            </div>
+            <div class="col-sm-9 mt-auto">
+                <div id="chat-history" class="row chat-history">
+                    <div id="chat-history-column" class="col">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col border-top p-0">
+                        <form id="message-form" action="" autocomplete="off">
+                            <div class="row no-gutters">
+                                <div class="col">
+                                    <input id="message-input" class="form-control message-input" type="text"
+                                        class="write_msg" placeholder="Type a message">
+                                </div>
+                                <div class="col col-btn">
+                                    <button class="btn btn-primary btn-block" type="submit">Send</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
 </html>
