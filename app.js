@@ -9,8 +9,8 @@ class ChatApplication {
         this.port = port;
 
         this.app = express();
-        this.http = http.Server(this._app);
-        this.io = socketio(this._http);
+        this.http = http.Server(this.app);
+        this.io = socketio(this.http);
 
         // Express app setup
         if (public_folder)
