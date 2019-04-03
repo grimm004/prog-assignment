@@ -25,6 +25,7 @@
     "socket.io": "^2.2.0"
   },
   "devDependencies": {
+    "eslint": "^5.16.0",
     "firebase-mock": "^2.2.10",
     "jest": "^24.5.0",
     "nodemon": "^1.18.10"
