@@ -1,3 +1,5 @@
+/* global isNullOrWhiteSpace */
+/* eslint-env browser */
 "use strict";
 
 $(() => {

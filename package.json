@@ -4,7 +4,7 @@
   "description": "Online chat program.",
   "main": "server.js",
   "scripts": {
-    "pretest": "eslint server.js",
+    "pretest": "eslint app.js app.test.js server.js public/js/common.js public/js/login.js public/js/register.js public/js/index.js",
     "test": "jest",
     "start": "nodemon server.js"
   },

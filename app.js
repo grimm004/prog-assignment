@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* eslint-disable no-console */
 "use strict";
 
 var express = require("express");
@@ -14,8 +16,10 @@ class ChatApplication {
 
         // Express app setup
         if (public_folder)
-            this.app.use(express.static(public_folder, { extensions: ['html', 'htm'], }));
+            this.app.use(express.static(public_folder, { extensions: ["html", "htm"], }));
         this.app.use(express.json());
+
+        
     }
 
     get Port() {

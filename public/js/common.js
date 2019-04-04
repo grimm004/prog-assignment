@@ -1,3 +1,6 @@
+/* eslint-env browser */
+/* eslint-disable no-unused-vars */
+
 function post(location, object) {
     return fetch(location, { method: "POST", mode: "cors", cache: "no-cache", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(object) });
 }

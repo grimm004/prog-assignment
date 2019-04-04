@@ -1,5 +1,5 @@
-# Firebase Configuration
-config_firebase.js
+# Firebase Admin Key
+adminkey.json
 
 # Logs
 logs
