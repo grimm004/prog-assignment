@@ -30,6 +30,35 @@ body {
 }
 
 /* Chat Window */
+.contacts-list {
+    overflow-y: auto;
+}
+
+.contacts-list-modal-body {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.contact {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.recent-message {
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.selected-contact {
+    background-color: #ddd;
+}
+
+.display-name {
+    font-weight: bold;
+}
+
 .chat-history {
     max-height: calc(100vh - 95px);
     overflow-y: auto;

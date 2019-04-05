@@ -22,6 +22,9 @@ var io = socketio(httpServer);
 app.use(express.static("public", { extensions: ["html", "htm"], }));
 app.use(express.json());
 
+// functions.auth.user().onCreate((user) => {
+//     // ...
+//   });
 
 
 module.exports = {

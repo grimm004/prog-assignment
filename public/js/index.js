@@ -53,8 +53,15 @@ $(() => {
 
 function initChat() {
     // Handle automatic scrolling
-    $("#chat-history").scroll(() => autoScroll = $("#chat-history").scrollTop() + $("#chat-history").height() >= $("#chat-history")[0].scrollHeight - 1);
+    $("#chat-history").scroll(function () { autoScroll = $(this).scrollTop() + $(this).height() >= this.scrollHeight - 1; });
     $("#signout-button").click(() => firebase.auth().signOut());
+
+    $("div#contacts-list > div").click(function () { chatWithContact($(this).attr("name")); });
+
+    function chatWithContact(contactId) {
+        $("div#contacts-list > div").removeClass("selected-contact");
+        $(`div#contacts-list > div[name="${contactId}"]`).addClass("selected-contact");
+    }
 
     var autoScroll = true;
     function updateScroll() {
@@ -67,6 +74,22 @@ function initChat() {
     }
 
     scrollToBottom();
+
+    // Handle placement of Contacts List
+    $(window).on("resize", placeContacts);
+
+    var contactsInSidebar = true;
+    placeContacts();
+    function placeContacts() {
+        var environment = findBootstrapEnvironment();
+        if (environment == "xs" && contactsInSidebar) {
+            contactsInSidebar = false;
+            $("#contacts-list").detach().appendTo("#contacts-list-modal-body");
+        } else if (environment != "xs" && !contactsInSidebar) {
+            contactsInSidebar = true;
+            $("#contacts-list").detach().appendTo("#sidebar");
+        }
+    }
 
     // Handle sending of messages
     $("#message-form").submit(
@@ -85,6 +108,11 @@ function initChat() {
     function sendMessage() {
 
     }
+
+    outputMessage("incoming", "Hello there");
+    outputMessage("outgoing", "Hi");
+    outputMessage("incoming", "Nice");
+    outputMessage("outgoing", "Nice");
 
     function outputMessage(type, message) {
         $("#chat-history-column").append(`<div class="message"><div class="${type}">${message}</div></div>`);
@@ -129,13 +157,7 @@ function initLogin() {
         if (dataValidation())
             if (signin)
                 firebase.auth().signInWithEmailAndPassword($("#email-input").val(), $("#password-input").val())
-                    .then(
-                        () => {
-                            showSignin();
-                            clearSignin();
-                            clearAlerts();
-                        }
-                    )
+                    .then(resetSignin)
                     .catch(
                         error => {
                             if (error.code === "auth/wrong-password" || error.code === "auth/user-not-found")
@@ -145,13 +167,7 @@ function initLogin() {
                     );
             else
                 firebase.auth().createUserWithEmailAndPassword($("#email-input").val(), $("#password-input").val())
-                    .then(
-                        () => {
-                            showSignin();
-                            clearSignin();
-                            clearAlerts();
-                        }
-                    )
+                    .then(resetSignin)
                     .catch(
                         error => {
                             if (error.code == "auth/weak-password")
@@ -160,6 +176,12 @@ function initLogin() {
                         }
                     );
     });
+
+    function resetSignin() {
+        showSignin();
+        clearSignin();
+        clearAlerts();
+    }
 
     function dataValidation() {
         var errorTitle = signin ? "Error Signing In" : "Error Signing Up";
@@ -198,16 +220,16 @@ function initLogin() {
             <strong>${title}</strong> ${message}
         </div>
         `);
-        $(`#alerts [name*='alert-${alertId}']`).on("closed.bs.alert",
+        $(`#alerts [name='alert-${alertId}']`).on("closed.bs.alert",
             (() => {
                 var currentAlertId = alertId;
-                return () => $(`#alerts [name*='alert-${currentAlertId}']`).remove();
+                return () => $(`#alerts [name='alert-${currentAlertId}']`).remove();
             })());
         if (timeout)
             setTimeout(
                 (() => {
                     var currentAlertId = alertId;
-                    return () => $(`#alerts div[name*='alert-${currentAlertId}']`).alert("close");
+                    return () => $(`#alerts div[name='alert-${currentAlertId}']`).alert("close");
                 })(), timeout);
         alertId++;
     }
@@ -223,4 +245,26 @@ function post(location, object) {
 
 function isNullOrWhiteSpace(str) {
     return str === null || /^\s*$/.test(str);
+}
+
+/* https://stackoverflow.com/questions/14441456/how-to-detect-which-device-view-youre-on-using-twitter-bootstrap-api */
+function findBootstrapEnvironment() {
+    let envs = ["xs", "sm", "md", "lg", "xl"];
+
+    let el = document.createElement("div");
+    document.body.appendChild(el);
+
+    let curEnv = envs.shift();
+
+    for (let env of envs.reverse()) {
+        el.classList.add(`d-${env}-none`);
+
+        if (window.getComputedStyle(el).display === "none") {
+            curEnv = env;
+            break;
+        }
+    }
+
+    document.body.removeChild(el);
+    return curEnv;
 }
