@@ -1,5 +1,6 @@
 /* eslint-env node */
+/* eslint-disable no-console */
 "use strict";
-const ChatApplication = require("./app");
+const app = require("./app");
 if (require.main === module)
-    new ChatApplication(8080).start();
+    app.httpServer.listen(8080, () => console.log("Started server on port 8080..."));

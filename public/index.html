@@ -18,48 +18,74 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://www.gstatic.com/firebasejs/5.9.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.9.2/firebase-auth.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <link rel="stylesheet" href="/css/chat.css">
-    <script src="/js/common.js"></script>
     <script src="js/index.js"></script>
 </head>
 
 <body>
-    <div class="container-fluid h-100 d-flex flex-column bg-dark">
-        <nav class="navbar navbar-expand-sm navbar-dark">
-            <a id="menu-toggle" class="navbar-brand" href="#">Node Chat</a>
+    <div id="signin-window" class="signin-window">
+        <div id="alerts"></div>
 
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapse">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+        <form id="signin-signup-form" class="container form-signin-signup justify-content-center needs-validation">
+            <h1 id="title" class="h3 mb-3">Sign in</h1>
+            <input type="email" id="email-input" class="form-control" placeholder="Email address" autofocus>
+            <input type="password" id="password-input" class="form-control" placeholder="Password">
+            <input type="password" id="confirm-password-input" class="form-control collapse"
+                placeholder="Confirm Password">
 
-            <div class="collapse navbar-collapse" id="navbar-collapse">
-                <button id="logout-button" class="btn btn-outline-warning my-2 my-sm-0 ml-auto">Logout</button>
-            </div>
-        </nav>
-
-        <div class="row flex-fill bg-light">
-            <div class="col-sm-3 border-right d-none d-sm-block">
-                Sidebar
-            </div>
-            <div class="col-sm-9 mt-auto">
-                <div id="chat-history" class="row chat-history">
-                    <div id="chat-history-column" class="col">
-                    </div>
+            <div class="row">
+                <div class="col">
+                    <button id="switch-button" class="btn btn-warning float-left btn-block" type="button">
+                        Sign up</button>
                 </div>
-                <div class="row">
-                    <div class="col border-top p-0">
-                        <form id="message-form" action="" autocomplete="off">
-                            <div class="row no-gutters">
-                                <div class="col">
-                                    <input id="message-input" class="form-control message-input" type="text"
-                                        class="write_msg" placeholder="Type a message">
+                <div class="col">
+                    <button id="submit-button" class="btn btn-primary float-right btn-block" type="submit">
+                        Sign in</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div id="chat-window" class="collapse">
+        <div class="container-fluid h-100 d-flex flex-column bg-dark">
+            <nav class="navbar navbar-expand-sm navbar-dark">
+                <a id="menu-toggle" class="navbar-brand" href="#">Node Chat</a>
+
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbar-collapse">
+                    <button id="logout-button" class="btn btn-outline-warning my-2 my-sm-0 ml-auto">Logout</button>
+                </div>
+            </nav>
+
+            <div class="row flex-fill bg-light">
+                <div class="col-sm-3 border-right d-none d-sm-block">
+                    Sidebar
+                </div>
+                <div class="col-sm-9 mt-auto">
+                    <div id="chat-history" class="row chat-history">
+                        <div id="chat-history-column" class="col">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col border-top p-0">
+                            <form id="message-form" action="" autocomplete="off">
+                                <div class="row no-gutters">
+                                    <div class="col">
+                                        <input id="message-input" class="form-control message-input" type="text"
+                                            class="write_msg" placeholder="Type a message">
+                                    </div>
+                                    <div class="col col-btn">
+                                        <button class="btn btn-primary btn-block" type="submit">Send</button>
+                                    </div>
                                 </div>
-                                <div class="col col-btn">
-                                    <button class="btn btn-primary btn-block" type="submit">Send</button>
-                                </div>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

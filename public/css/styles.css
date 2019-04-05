@@ -1,11 +1,35 @@
 html, body {
     height: 100%;
 }
- 
+
 body {
+    background-color: #f2f2f2;
     overflow-x: hidden;
 }
 
+/* Login Window */
+.signin-window {
+    text-align: center;
+    padding: 40px;
+}
+
+.form-signin-signup {
+    max-width: 330px;
+}
+
+.form-signin-signup .form-control {
+    position: relative;
+    box-sizing: border-box;
+    height: auto;
+    padding: 10px;
+    font-size: 16px;
+}
+
+.form-signin-signup button {
+    margin-top: 10px;
+}
+
+/* Chat Window */
 .chat-history {
     max-height: calc(100vh - 95px);
     overflow-y: auto;

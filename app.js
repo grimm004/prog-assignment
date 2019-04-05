@@ -1,42 +1,32 @@
 /* eslint-env node */
 /* eslint-disable no-console */
+/* eslint-disable no-unused-vars */
 "use strict";
 
 var express = require("express");
 var http = require("http");
 var socketio = require("socket.io");
+var admin = require("firebase-admin");
 
-class ChatApplication {
-    constructor(port, public_folder = "public") {
-        this.port = port;
+var serviceAccount = require("./adminkey.json");
 
-        this.app = express();
-        this.http = http.Server(this.app);
-        this.io = socketio(this.http);
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://prognodechat.firebaseio.com"
+});
 
-        // Express app setup
-        if (public_folder)
-            this.app.use(express.static(public_folder, { extensions: ["html", "htm"], }));
-        this.app.use(express.json());
+var app = express();
+var httpServer = http.Server(app);
+var io = socketio(httpServer);
 
-        
-    }
+app.use(express.static("public", { extensions: ["html", "htm"], }));
+app.use(express.json());
 
-    get Port() {
-        return this.port;
-    }
 
-    get Express() {
-        return this.app;
-    }
 
-    get SocketIO() {
-        return this.io;
-    }
-
-    start() {
-        this.http.listen(this.port, () => console.log("Started ProgNodeChat server on port " + this.port + "..."));
-    }
-}
-
-module.exports = ChatApplication;
+module.exports = {
+    expressApp: app,
+    httpServer: httpServer,
+    socketIOApp: io,
+    add: (a, b) => a + b,
+};
