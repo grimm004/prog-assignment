@@ -26,10 +26,11 @@
 </head>
 
 <body>
+    <!-- Signin/Signup Window -->
     <div id="signin-window" class="signin-window">
         <div id="alerts"></div>
 
-        <form id="signin-signup-form" class="container form-signin-signup justify-content-center needs-validation">
+        <form id="signin-signup-form" action="" class="container form-signin-signup justify-content-center">
             <h1 id="title" class="h3 mb-3">Sign in</h1>
             <input type="email" id="email-input" class="form-control" placeholder="Email address" autofocus>
             <input type="password" id="password-input" class="form-control" placeholder="Password">
@@ -49,7 +50,8 @@
         </form>
     </div>
 
-    <div id="chat-window" class="collapse">
+    <!-- Chat Window -->
+    <div id="chat-window" class="chat-window collapse">
         <div class="container-fluid h-100 d-flex flex-column bg-dark">
             <nav class="navbar navbar-expand-sm navbar-dark">
                 <a id="menu-toggle" class="navbar-brand" href="#">Node Chat</a>
@@ -59,7 +61,11 @@
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbar-collapse">
-                    <button id="logout-button" class="btn btn-outline-warning my-2 my-sm-0 ml-auto">Logout</button>
+                    <ul class="navbar-nav ml-auto">
+                        <button type="button" class="btn btn-outline-success m-1" data-toggle="modal"
+                            data-target="#profile-modal">My Profile</button>
+                        <button id="signout-button" class="btn btn-outline-warning m-1">Sign Out</button>
+                    </ul>
                 </div>
             </nav>
 
@@ -88,6 +94,40 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 'My Profile' Modal Window -->
+    <div class="modal fade" id="profile-modal" tabindex="-1" role="dialog"
+        aria-labelledby="profile-model-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="profile-model-title">My Profile</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="profile-update-form" action="">
+                    <div class="modal-body">
+                        <label id="profile-update-feedback" class="align-middle"></label>
+                        <div class="form-group">
+                            <label for="emailinput">Email</label>
+                            <input id="profile-email-input" class="form-control" type="text" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="profile-display-name-input">Display Name</label>
+                            <input id="profile-display-name-input" class="form-control" placeholder="Display Name"
+                                type="text">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-dismiss="modal"
+                            type="button">Close</button>
+                        <button class="btn btn-primary" type="submit">Save Changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

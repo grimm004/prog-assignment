@@ -1,4 +1,4 @@
-html, body {
+html, body, .signin-window, .chat-window {
     height: 100%;
 }
 

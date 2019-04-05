@@ -5,11 +5,6 @@
 /* global firebase isNullOrWhiteSpace */
 "use strict";
 
-$(() => {
-    initLogin();
-    initChat();
-});
-
 firebase.initializeApp({
     apiKey: "AIzaSyCLctcnsWjexbgluwuyb6frIxAglkYGtOk",
     authDomain: "prognodechat.firebaseapp.com",
@@ -19,9 +14,47 @@ firebase.initializeApp({
     messagingSenderId: "1057913300504"
 });
 
+$(() => {
+    firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+            $("#profile-email-input").val(user.email);
+            $("#profile-display-name-input").val(user.displayName);
+            showChatWindow();
+        } else {
+            showSigninWindow();
+        }
+    });
+
+    $("#profile-update-form").submit(
+        e => {
+            e.preventDefault();
+
+            firebase.auth().currentUser.updateProfile({ displayName: $("#profile-display-name-input").val() })
+                .then(() => $("#profile-update-feedback").html("<p class=\"text-success\">Successfully updated profile.</p>"))
+                .catch(() => $("#profile-update-feedback").html("<p class=\"text=danger\">Error updating profile.</p>"));
+        }
+    );
+
+    showSigninWindow();
+
+    function showSigninWindow() {
+        $("#chat-window").hide();
+        $("#signin-window").show();
+    }
+
+    function showChatWindow() {
+        $("#signin-window").hide();
+        $("#chat-window").show();
+    }
+
+    initLogin();
+    initChat();
+});
+
 function initChat() {
     // Handle automatic scrolling
     $("#chat-history").scroll(() => autoScroll = $("#chat-history").scrollTop() + $("#chat-history").height() >= $("#chat-history")[0].scrollHeight - 1);
+    $("#signout-button").click(() => firebase.auth().signOut());
 
     var autoScroll = true;
     function updateScroll() {
@@ -35,6 +68,7 @@ function initChat() {
 
     scrollToBottom();
 
+    // Handle sending of messages
     $("#message-form").submit(
         e => {
             e.preventDefault();
@@ -60,18 +94,6 @@ function initChat() {
 }
 
 function initLogin() {
-    firebase.auth().onAuthStateChanged(function (user) {
-        if (user) {
-            var displayName = user.displayName;
-            var email = user.email;
-            var emailVerified = user.emailVerified;
-            var photoURL = user.photoURL;
-            var isAnonymous = user.isAnonymous;
-            var uid = user.uid;
-            var providerData = user.providerData;
-        }
-    });
-
     var signin = true;
     $("#switch-button").click(() => {
         if (signin) showSignup();
@@ -80,7 +102,6 @@ function initLogin() {
 
     function showSignup() {
         signin = false;
-        $("#confirm-password-input").attr("disabled", false);
         $("#confirm-password-input").show();
         $("#switch-button").html("Sign in");
         $("#submit-button").html("Sign up");
@@ -89,13 +110,17 @@ function initLogin() {
 
     function showSignin() {
         signin = true;
-        $("#confirm-password-input")[0].setCustomValidity("");
         $("#confirm-password-input").val("");
         $("#confirm-password-input").hide();
-        $("#confirm-password-input").attr("disabled", true);
         $("#switch-button").html("Sign up");
         $("#submit-button").html("Sign in");
         $("#title").html("Sign in");
+    }
+
+    function clearSignin() {
+        $("#email-input").val("");
+        $("#password-input").val("");
+        $("#confirm-password-input").val("");
     }
 
     $("#signin-signup-form").submit(function (event) {
@@ -104,16 +129,36 @@ function initLogin() {
         if (dataValidation())
             if (signin)
                 firebase.auth().signInWithEmailAndPassword($("#email-input").val(), $("#password-input").val())
+                    .then(
+                        () => {
+                            showSignin();
+                            clearSignin();
+                            clearAlerts();
+                        }
+                    )
                     .catch(
                         error => {
-                            if (error.code === "auth/wrong-password" || error.code === "auth/user-not-found") {
+                            if (error.code === "auth/wrong-password" || error.code === "auth/user-not-found")
                                 showAlert("danger", "Error Signing In", "Invalid email or password.", 5000);
-                            } else showAlert("danger", "Error Signing In", error.message, 5000);
+                            else showAlert("danger", "Error Signing In", error.message, 5000);
                         }
                     );
-            else {
-                //
-            }
+            else
+                firebase.auth().createUserWithEmailAndPassword($("#email-input").val(), $("#password-input").val())
+                    .then(
+                        () => {
+                            showSignin();
+                            clearSignin();
+                            clearAlerts();
+                        }
+                    )
+                    .catch(
+                        error => {
+                            if (error.code == "auth/weak-password")
+                                showAlert("danger", "Error Signing In", "Password is too weak.", 5000);
+                            else showAlert("danger", "Error Signing In", error.message, 5000);
+                        }
+                    );
     });
 
     function dataValidation() {
@@ -165,6 +210,10 @@ function initLogin() {
                     return () => $(`#alerts div[name*='alert-${currentAlertId}']`).alert("close");
                 })(), timeout);
         alertId++;
+    }
+
+    function clearAlerts() {
+        $("#alerts").html("");
     }
 }
 
