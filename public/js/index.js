@@ -17,23 +17,65 @@ firebase.initializeApp({
 $(() => {
     firebase.auth().onAuthStateChanged(function (user) {
         if (user) {
-            $("#profile-email-input").val(user.email);
-            $("#profile-display-name-input").val(user.displayName);
             showChatWindow();
+            // Update user profile in database
+            firebase.database().ref(`user/${user.uid}`)
+                .update({
+                    email: user.email,
+                    lastSeen: Date.now(),
+                });
+            firebase.database().ref(`user/${user.uid}/contactRequests`).on("value", snapshot => updateContactRequestList(snapshot));
+            firebase.database().ref(`user/${user.uid}/contacts`).on("value", snapshot => updateContactsList(snapshot.val()));
+            firebase.auth().currentUser.getIdToken(true)
+                .then(
+                    idToken => {
+                        // Connect to chat
+                        // POST request handlers
+                        $("#add-contact-form").submit(
+                            event => {
+                                event.preventDefault();
+
+                                var email = $("#contact-email-input").val();
+                                if (validEmail(email))
+                                    fetch("/addcontact", {
+                                        method: "POST",
+                                        headers: {
+                                            "Accept": "application/json, text/plain, */*",
+                                            "Content-Type": "application/json"
+                                        },
+                                        body: JSON.stringify({ idToken: idToken, contact: email }),
+                                    })
+                                        .then(function (res) { return res.json(); })
+                                        .then(function (data) { console.log(data); });
+                                else
+                                    console.log("Invalid email");
+                            }
+                        );
+                    }
+                ).catch(
+                    error => {
+                        console.log("Error occurred while accessing login token: " + error);
+                    }
+                );
+
+            $("#profile-email-input").val(user.email);
+            firebase.database().ref(`user/${user.uid}/displayName`).on("value", snapshot => $("#profile-display-name-input").val(snapshot.val() || ""));
+
+            $("#profile-update-form").submit(
+                e => {
+                    e.preventDefault();
+
+                    firebase.database().ref(`user/${user.uid}/`).update({
+                        displayName: $("#profile-display-name-input").val(),
+                    })
+                        .then(() => $("#profile-update-feedback").html("<p class=\"text-success\">Successfully updated profile.</p>"))
+                        .catch(() => $("#profile-update-feedback").html("<p class=\"text=danger\">Error updating profile.</p>"));
+                }
+            );
         } else {
             showSigninWindow();
         }
     });
-
-    $("#profile-update-form").submit(
-        e => {
-            e.preventDefault();
-
-            firebase.auth().currentUser.updateProfile({ displayName: $("#profile-display-name-input").val() })
-                .then(() => $("#profile-update-feedback").html("<p class=\"text-success\">Successfully updated profile.</p>"))
-                .catch(() => $("#profile-update-feedback").html("<p class=\"text=danger\">Error updating profile.</p>"));
-        }
-    );
 
     showSigninWindow();
 
@@ -45,6 +87,36 @@ $(() => {
     function showChatWindow() {
         $("#signin-window").hide();
         $("#chat-window").show();
+    }
+
+    function updateContactsList(contactList) {
+        if (contactList)
+            console.log(contactList);
+        else
+            console.log("No contacts.");
+    }
+
+    function updateContactRequestList(contactRequestSnapshot) {
+        if (contactRequestSnapshot.val() == null) $("#contact-requests").html("<div class=\"text-center pt-2\">No incoming contact requests.</div>");
+        else {
+            $("#contact-requests").html("");
+            contactRequestSnapshot.forEach(
+                contactRequest => {
+                    console.log(contactRequest);
+                    $("#contact-requests").append(
+                        `<div name="${contactRequest.val()}" class="row p-1">
+                             <div class="col">
+                                 <div class="d-inline">${contactRequest.val()}</div>
+                                 <div class="btn-group float-right" role="group">
+                                     <button class="btn btn-success btn-sm" name="a-${contactRequest.val()}">Accept</button>
+                                     <button class="btn btn-danger btn-sm" name="d-${contactRequest.val()}">Decline</button>
+                                 </div>
+                             </div>
+                         </div>`
+                    );
+                }
+            );
+        }
     }
 
     initLogin();
@@ -207,11 +279,6 @@ function initLogin() {
         return $("#password-input").val() == $("#confirm-password-input").val();
     }
 
-    // Email validation regex from https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
-    function validEmail(email) {
-        return /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(String(email).toLowerCase());
-    }
-
     var alertId = 0;
     function showAlert(type, title, message, timeout) {
         $("#alerts").append(`
@@ -267,4 +334,9 @@ function findBootstrapEnvironment() {
 
     document.body.removeChild(el);
     return curEnv;
+}
+
+// Email validation regex from https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+function validEmail(email) {
+    return /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(String(email).toLowerCase());
 }
