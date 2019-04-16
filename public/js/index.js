@@ -1,8 +1,7 @@
 /* eslint-env browser */
-/* eslint-disable no-unused-vars */
 /* eslint-disable no-console */
-/* eslint-env browser */
-/* global firebase isNullOrWhiteSpace */
+/* eslint indent: [2, 4, {"SwitchCase": 1}] */
+/* global firebase io */
 "use strict";
 
 firebase.initializeApp({
@@ -11,129 +10,304 @@ firebase.initializeApp({
     databaseURL: "https://prognodechat.firebaseio.com",
     projectId: "prognodechat",
     storageBucket: "prognodechat.appspot.com",
-    messagingSenderId: "1057913300504"
+    messagingsenderUid: "1057913300504"
 });
 
+var auth = firebase.auth(),
+    db = firebase.database();
+
 $(() => {
-    firebase.auth().onAuthStateChanged(function (user) {
-        if (user) {
-            showChatWindow();
-            // Update user profile in database
-            firebase.database().ref(`user/${user.uid}`)
-                .update({
-                    email: user.email,
-                    lastSeen: Date.now(),
-                });
-            firebase.database().ref(`user/${user.uid}/contactRequests`).on("value", snapshot => updateContactRequestList(snapshot));
-            firebase.database().ref(`user/${user.uid}/contacts`).on("value", snapshot => updateContactsList(snapshot.val()));
-            firebase.auth().currentUser.getIdToken(true)
-                .then(
-                    idToken => {
-                        // Connect to chat
-                        // POST request handlers
-                        $("#add-contact-form").submit(
-                            event => {
-                                event.preventDefault();
-
-                                var email = $("#contact-email-input").val();
-                                if (validEmail(email))
-                                    fetch("/addcontact", {
-                                        method: "POST",
-                                        headers: {
-                                            "Accept": "application/json, text/plain, */*",
-                                            "Content-Type": "application/json"
-                                        },
-                                        body: JSON.stringify({ idToken: idToken, contact: email }),
-                                    })
-                                        .then(function (res) { return res.json(); })
-                                        .then(function (data) { console.log(data); });
-                                else
-                                    console.log("Invalid email");
-                            }
-                        );
-                    }
-                ).catch(
-                    error => {
-                        console.log("Error occurred while accessing login token: " + error);
-                    }
-                );
-
-            $("#profile-email-input").val(user.email);
-            firebase.database().ref(`user/${user.uid}/displayName`).on("value", snapshot => $("#profile-display-name-input").val(snapshot.val() || ""));
-
-            $("#profile-update-form").submit(
-                e => {
-                    e.preventDefault();
-
-                    firebase.database().ref(`user/${user.uid}/`).update({
-                        displayName: $("#profile-display-name-input").val(),
-                    })
-                        .then(() => $("#profile-update-feedback").html("<p class=\"text-success\">Successfully updated profile.</p>"))
-                        .catch(() => $("#profile-update-feedback").html("<p class=\"text=danger\">Error updating profile.</p>"));
-                }
-            );
-        } else {
-            showSigninWindow();
-        }
-    });
-
-    showSigninWindow();
-
     function showSigninWindow() {
+        // Hide the chat window divider and show the sign in window divider
         $("#chat-window").hide();
         $("#signin-window").show();
     }
 
     function showChatWindow() {
+        // Hide the sign in window divider and show the chat window divider
         $("#signin-window").hide();
         $("#chat-window").show();
     }
 
-    function updateContactsList(contactList) {
-        if (contactList)
-            console.log(contactList);
-        else
-            console.log("No contacts.");
+    // Initially show the sign in window
+    showSigninWindow();
+
+    var currentUser, socket, currentChatUid;
+    auth.onAuthStateChanged(function (user) {
+        currentUser = user;
+        if (currentUser) onSignin();
+        else onSignout();
+    });
+
+    function onSignin() {
+        // Update user profile in database
+        db.ref(`user/${currentUser.uid}`)
+            .update({
+                email: currentUser.email,
+                lastSeen: Date.now(),
+            });
+        // Update user profile on frontend
+        $("#profile-email-input").val(currentUser.email);
+        db.ref(`user/${currentUser.uid}/displayName`).on("value", snapshot => $("#profile-display-name-input").val(snapshot.val() || ""));
+
+        // Register firebase listeners for changes in contact requests and contacts
+        db.ref(`user/${currentUser.uid}/contactRequests`).on("value", snapshot => updateContactRequestList(snapshot));
+        db.ref(`user/${currentUser.uid}/contacts`).orderByChild("recentMessageTimestamp").on("value", snapshot => updateContactsList(snapshot));
+
+        // Create and connect a message socket
+        socket = io.connect();
+
+        socket.on("message", messageData => {
+            if (messageData.senderUid == currentChatUid) outputMessage(messageData);
+        });
+
+        socket.on("typing", typingData => {
+            var contactDiv = $(`#contacts-list div[name="${typingData.senderUid}"]`);
+            contactDiv.find("div.recent-message").html(`${contactDiv.find("div.display-name").text()} is typing...`);
+        });
+
+        socket.on("untyping", typingData => {
+            db.ref(`user/${currentUser.uid}/contacts/${typingData.senderUid}/recentMessage`).once("value",
+                snapshot => {
+                    var contactDiv = $(`#contacts-list div[name="${typingData.senderUid}"]`);
+                    contactDiv.find("div.recent-message").html(snapshot.val() || `Send ${contactDiv.find("div.display-name").text()} a message...`);
+                }
+            );
+        });
+
+        getIdToken(idToken => {
+            socket.emit("auth", { idToken: idToken });
+        }, error => console.log(error));
+
+        // Show the chat window
+        showChatWindow();
+    }
+
+    function onSignout() {
+        // Disconnect the message socket
+        if (socket) socket.disconnect();
+        // Reset all forms
+        $("form").trigger("reset");
+        // Clear chat, contacts list, contact requests and modal feedback responses
+        $("#chat-history *").remove();
+        $("#contacts-list *").remove();
+        $("#add-contact-feedback *").remove();
+        $("#profile-update-feedback *").remove();
+        currentChatUid = "";
+        // Show the sign in window
+        showSigninWindow();
+    }
+
+    function getIdToken(successCallback, errorCallback) {
+        currentUser.getIdToken(true)
+            .then(successCallback)
+            .catch(errorCallback);
+    }
+
+    $("#add-contact-form").submit(
+        event => {
+            event.preventDefault();
+
+            var addContactMessages = {
+                "auth/user-not-found": "User could not be found.",
+                "request-already-sent": "A contact request has already been sent.",
+                "contact-added": "Contact has been added.",
+                "request-sent": "Contact request has been sent.",
+                "already-contacts": "Already contacts."
+            };
+
+            var email = $("#contact-email-input").val();
+            if (validEmail(email) && email != currentUser.email)
+                getIdToken(idToken => {
+                    post("/addcontact", { idToken: idToken, contactEmail: email })
+                        .then(response => response.json())
+                        .then(responseData => {
+                            $("#add-contact-feedback").html(
+                                `
+                                <span class="text-${responseData.success ? "success" : "danger"}">
+                                    <strong>${responseData.success ? "Success" : "Error adding contact"}:</strong>
+                                    ${responseData.code in addContactMessages ? addContactMessages[responseData.code] : "An unknown error occurred."}
+                                </span>
+                                `
+                            );
+                            if (responseData.success) $("#contact-email-input").val("");
+                        });
+                }, error => {
+                    console.log("Error occurred while accessing login token: " + error);
+                });
+            else $("#add-contact-feedback").html("<span class=\"text-warning\"><strong>Error adding contact</strong>: Invalid email entered.</span>");
+        }
+    );
+
+    $("#profile-update-form").submit(
+        e => {
+            e.preventDefault();
+
+            db.ref(`user/${currentUser.uid}/`).update({
+                displayName: $("#profile-display-name-input").val(),
+            })
+                .then(() => $("#profile-update-feedback").html("<p class=\"text-success\">Successfully updated profile.</p>"))
+                .catch(() => $("#profile-update-feedback").html("<p class=\"text=danger\">Error updating profile.</p>"));
+        }
+    );
+
+    function openChat(contactUid) {
+        if (!$(`div#contacts-list > div[name="${contactUid}"]`).hasClass("selected-contact") && currentChatUid != contactUid) {
+            currentChatUid = contactUid;
+            $("#chat-history *").remove();
+
+            getIdToken(idToken =>
+                post("/messages", { idToken: idToken, contact: currentChatUid })
+                    .then(response => response.json())
+                    .then(responseData => {
+                        responseData.messages.forEach(message => { outputMessage(message); });
+                    }), error => console.log(error));
+        }
+        $("div#contacts-list > div").removeClass("selected-contact");
+        $(`div#contacts-list > div[name="${currentChatUid}"]`).addClass("selected-contact");
+        db.ref(`user/${currentUser.uid}/contacts/${currentChatUid}/recentMessageViewed`).set(true);
+    }
+
+    function updateContactsList(contactListSnapshot) {
+        $("#contacts-list *").remove();
+        if (contactListSnapshot.hasChildren()) {
+            contactListSnapshot.forEach(contact_ => {
+                var contactUid = contact_.key;
+                var contact = contact_.val();
+                var displayNameDiv = $("<div/>")
+                    .attr("class", "display-name")
+                    .html("Loading...");
+                var recentMessageDiv = $("<div/>")
+                    .attr("class", "recent-message")
+                    .html("Loading...");
+                var contactDiv = $("<div/>")
+                    .attr("class", "contact")
+                    .attr("name", contactUid)
+                    .append(displayNameDiv, recentMessageDiv)
+                    .click(function () { openChat(contactUid); });
+
+                if (!contact.recentMessageViewed) recentMessageDiv.addClass("unread");
+
+                db.ref(`user/${contactUid}/displayName`).once("value",
+                    displayNameSnapshot => {
+                        if (displayNameSnapshot.exists()) {
+                            var displayName = displayNameSnapshot.val();
+                            displayNameDiv.text(displayName);
+                            recentMessageDiv.text(contact.recentMessage || `Send ${displayName} a message...`);
+                        }
+                        else db.ref(`user/${contactUid}/email`).once("value",
+                            emailSnapshot => {
+                                var displayName = emailSnapshot.exists() ? emailSnapshot.val() : contactUid;
+                                displayNameDiv.text(displayName);
+                                recentMessageDiv.text(contact.recentMessage || `Send ${displayName} a message...`);
+                            });
+                    }, error => console.log(error));
+
+                $("#contacts-list").prepend(contactDiv);
+            });
+            openChat(currentChatUid || $("#contacts-list div:first-child").attr("name"));
+            $("#message-input").prop("disabled", false);
+        } else {
+            $("#message-input").prop("disabled", true);
+            $("#contacts-list").append("<div class=\"text-center text-primary p-2\"><a href=\"\" data-toggle=\"modal\" data-target=\"#add-contacts-modal\">Add contacts</a></div>");
+        }
     }
 
     function updateContactRequestList(contactRequestSnapshot) {
-        if (contactRequestSnapshot.val() == null) $("#contact-requests").html("<div class=\"text-center pt-2\">No incoming contact requests.</div>");
+        if (!contactRequestSnapshot.exists()) $("#contact-requests").html("<div class=\"text-center pt-2\">No incoming contact requests.</div>");
         else {
-            $("#contact-requests").html("");
+            $("#contact-requests *").remove();
             contactRequestSnapshot.forEach(
                 contactRequest => {
-                    console.log(contactRequest);
-                    $("#contact-requests").append(
-                        `<div name="${contactRequest.val()}" class="row p-1">
-                             <div class="col">
-                                 <div class="d-inline">${contactRequest.val()}</div>
-                                 <div class="btn-group float-right" role="group">
-                                     <button class="btn btn-success btn-sm" name="a-${contactRequest.val()}">Accept</button>
-                                     <button class="btn btn-danger btn-sm" name="d-${contactRequest.val()}">Decline</button>
-                                 </div>
-                             </div>
-                         </div>`
-                    );
+                    var email = contactRequest.val().email;
+                    var acceptButton = $("<button/>")
+                        .text("Accept")
+                        .attr("class", "btn btn-success btn-sm")
+                        .attr("type", "button")
+                        .click(() => { acceptContactRequest(contactRequest.key); });
+
+                    var declineButton = $("<button/>")
+                        .text("Decline")
+                        .attr("class", "btn btn-danger btn-sm")
+                        .attr("type", "button")
+                        .click(() => { removeContactRequest(contactRequest.key); });
+
+                    var buttons = $("<div/>")
+                        .attr("class", "btn-group float-right")
+                        .attr("role", "group")
+                        .append(acceptButton, declineButton);
+
+                    var column = $("<div/>")
+                        .attr("class", "col")
+                        .append(`<div class="d-inline">${email}</div>`, buttons);
+
+                    var requestRow = $("<div/>")
+                        .attr("class", "row pb-1")
+                        .attr("name", email)
+                        .append(column);
+
+                    $("#contact-requests").append(requestRow);
                 }
             );
         }
     }
 
-    initLogin();
-    initChat();
-});
-
-function initChat() {
-    // Handle automatic scrolling
-    $("#chat-history").scroll(function () { autoScroll = $(this).scrollTop() + $(this).height() >= this.scrollHeight - 1; });
-    $("#signout-button").click(() => firebase.auth().signOut());
-
-    $("div#contacts-list > div").click(function () { chatWithContact($(this).attr("name")); });
-
-    function chatWithContact(contactId) {
-        $("div#contacts-list > div").removeClass("selected-contact");
-        $(`div#contacts-list > div[name="${contactId}"]`).addClass("selected-contact");
+    function acceptContactRequest(uid) {
+        getIdToken(
+            idToken => {
+                post("/acceptcontact", { idToken: idToken, contact: uid })
+                    .then(response => response.json())
+                    .then(() => { });
+            },
+            error => {
+                console.log(error);
+            }
+        );
     }
+
+    function removeContactRequest(uid) {
+        db.ref(`user/${currentUser.uid}/contactRequests/${uid}`).remove();
+    }
+
+    // Handle sending of messages
+    $("#message-form").submit(
+        e => {
+            e.preventDefault();
+
+            if (currentChatUid) {
+                var messageText = $("#message-input").val();
+                if (!isNullOrWhiteSpace(messageText)) {
+                    typing = false;
+                    $("#message-input").val("");
+                    sendMessage(messageText);
+                }
+            }
+        }
+    );
+
+    function sendMessage(messageText) {
+        getIdToken(
+            idToken => {
+                var timestamp = Date.now();
+                socket.emit("message", { idToken: idToken, targetUid: currentChatUid, text: messageText, timestamp: timestamp });
+                outputMessage({ senderUid: auth.currentUser.uid, text: messageText, timestamp: timestamp });
+            },
+            error => console.log(error)
+        );
+    }
+
+    function outputMessage(messageData) {
+        if (auth.currentUser && messageData) {
+            var type = messageData.senderUid == auth.currentUser.uid ? "outgoing" : "incoming";
+            $("#chat-history").append(`<div class="message" data-timestamp="${messageData.timestamp}"><div class="${type}">${messageData.text}</div></div>`);
+            if (type == "outgoing") scrollToBottom();
+            else updateScroll();
+        }
+    }
+
+    // Handle automatic scrolling
+    $("#chat-history-row").scroll(function () { autoScroll = $(this).scrollTop() + $(this).height() >= this.scrollHeight - 1; });
+    $("#signout-button").click(() => auth.signOut());
 
     var autoScroll = true;
     function updateScroll() {
@@ -142,7 +316,7 @@ function initChat() {
     }
 
     function scrollToBottom() {
-        $("#chat-history").scrollTop($("#chat-history")[0].scrollHeight);
+        $("#chat-history-row").scrollTop($("#chat-history-row")[0].scrollHeight);
     }
 
     scrollToBottom();
@@ -163,35 +337,34 @@ function initChat() {
         }
     }
 
-    // Handle sending of messages
-    $("#message-form").submit(
-        e => {
-            e.preventDefault();
+    // Disable message input
+    $("#message-input").prop("disabled", false);
 
-            var message = $("#message-input").val();
-            if (!isNullOrWhiteSpace(message)) {
-                $("#message-input").val("");
-                sendMessage(message);
-                outputMessage("outgoing", message);
-            }
+    var typing = false;
+    var typingTargetUid = "";
+    $("#message-input").on("input", () => {
+        if (typing && $("#message-input").val() == "") {
+            typing = false;
+            getIdToken(
+                idToken => {
+                    socket.emit("untyping", { idToken: idToken, targetUid: typingTargetUid });
+                },
+                error => console.log(error)
+            );
+        } else if (!typing && $("#message-input").val() != "") {
+            typing = true;
+            getIdToken(
+                idToken => {
+                    typingTargetUid = currentChatUid;
+                    socket.emit("typing", { idToken: idToken, targetUid: typingTargetUid });
+                },
+                error => console.log(error)
+            );
         }
-    );
+    });
 
-    function sendMessage() {
-
-    }
-
-    outputMessage("incoming", "Hello there");
-    outputMessage("outgoing", "Hi");
-    outputMessage("incoming", "Nice");
-    outputMessage("outgoing", "Nice");
-
-    function outputMessage(type, message) {
-        $("#chat-history-column").append(`<div class="message"><div class="${type}">${message}</div></div>`);
-        if (type == "outgoing") scrollToBottom();
-        else updateScroll();
-    }
-}
+    initLogin();
+});
 
 function initLogin() {
     var signin = true;
@@ -226,25 +399,32 @@ function initLogin() {
     $("#signin-signup-form").submit(function (event) {
         event.preventDefault();
 
+        var signinMessages = {
+            "auth/wrong-password": "Invalid email or password.",
+            "auth/user-not-found": "Invalid email or password.",
+            "auth/weak-password": "Password is too weak.",
+            "auth/too-many-requests": "To many unsuccessful login attemts."
+        };
+
         if (dataValidation())
             if (signin)
-                firebase.auth().signInWithEmailAndPassword($("#email-input").val(), $("#password-input").val())
+                auth.signInWithEmailAndPassword($("#email-input").val(), $("#password-input").val())
                     .then(resetSignin)
                     .catch(
                         error => {
-                            if (error.code === "auth/wrong-password" || error.code === "auth/user-not-found")
-                                showAlert("danger", "Error Signing In", "Invalid email or password.", 5000);
-                            else showAlert("danger", "Error Signing In", error.message, 5000);
+                            if (error.code in signinMessages)
+                                showAlert("danger", "Error signing in:", signinMessages[error.code], 5000);
+                            else { console.log(error.code); showAlert("danger", "Error signing in:", error.message, 5000); }
                         }
                     );
             else
-                firebase.auth().createUserWithEmailAndPassword($("#email-input").val(), $("#password-input").val())
+                auth.createUserWithEmailAndPassword($("#email-input").val(), $("#password-input").val())
                     .then(resetSignin)
                     .catch(
                         error => {
-                            if (error.code == "auth/weak-password")
-                                showAlert("danger", "Error Signing In", "Password is too weak.", 5000);
-                            else showAlert("danger", "Error Signing In", error.message, 5000);
+                            if (error.code in signinMessages)
+                                showAlert("danger", "Error signing up:", signinMessages[error.code], 5000);
+                            else showAlert("danger", "Error signing up:", error.message, 5000);
                         }
                     );
     });
@@ -256,7 +436,7 @@ function initLogin() {
     }
 
     function dataValidation() {
-        var errorTitle = signin ? "Error Signing In" : "Error Signing Up";
+        var errorTitle = signin ? "Error signing in" : "Error signing up";
         if (!validEmail($("#email-input").val())) {
             showAlert("danger", errorTitle, "Please enter a valid email.", 5000);
             return false;
@@ -306,15 +486,27 @@ function initLogin() {
     }
 }
 
+// Perform a post request to the server and return the promise
 function post(location, object) {
-    return fetch(location, { method: "POST", mode: "cors", cache: "no-cache", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(object) });
+    return fetch(location, {
+        method: "POST",
+        mode: "cors",
+        cache: "no-cache",
+        credentials: "same-origin",
+        headers: {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(object)
+    });
 }
 
-function isNullOrWhiteSpace(str) {
-    return str === null || /^\s*$/.test(str);
+// Return true if the provided text is null or white space
+function isNullOrWhiteSpace(text) {
+    return text === null || /^\s*$/.test(text);
 }
 
-/* https://stackoverflow.com/questions/14441456/how-to-detect-which-device-view-youre-on-using-twitter-bootstrap-api */
+/* Window size class idenfication from https://stackoverflow.com/questions/14441456/how-to-detect-which-device-view-youre-on-using-twitter-bootstrap-api */
 function findBootstrapEnvironment() {
     let envs = ["xs", "sm", "md", "lg", "xl"];
 
@@ -336,7 +528,7 @@ function findBootstrapEnvironment() {
     return curEnv;
 }
 
-// Email validation regex from https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+/* Email validation regex from https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript */
 function validEmail(email) {
     return /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(String(email).toLowerCase());
 }

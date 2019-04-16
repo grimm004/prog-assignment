@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>Chat</title>
+    <title>Node.JS Chat</title>
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -59,7 +59,7 @@
     <div id="chat-window" class="chat-window collapse">
         <div class="container-fluid h-100 d-flex flex-column bg-dark">
             <nav class="navbar navbar-expand-sm navbar-dark">
-                <a id="menu-toggle" class="navbar-brand" href="#">Node Chat</a>
+                <a id="menu-toggle" class="navbar-brand" href="#">Node.JS Chat</a>
 
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
@@ -69,11 +69,11 @@
                     <ul class="navbar-nav ml-auto">
                         <button type="button" class="btn btn-outline-primary m-1 d-block d-sm-none" data-toggle="modal"
                             data-target="#contacts-list-modal">Contacts</button>
-                        <button type="button" class="btn btn-outline-secondary m-1" data-toggle="modal"
+                        <button type="button" class="btn btn-outline-warning m-1" data-toggle="modal"
                             data-target="#add-contacts-modal">Add Contacts</button>
                         <button type="button" class="btn btn-outline-success m-1" data-toggle="modal"
                             data-target="#profile-modal">My Profile</button>
-                        <button id="signout-button" class="btn btn-outline-warning m-1">Sign Out</button>
+                        <button id="signout-button" class="btn btn-outline-secondary m-1">Sign Out</button>
                     </ul>
                 </div>
             </nav>
@@ -81,36 +81,12 @@
             <div class="row flex-fill bg-light">
                 <div id="sidebar" class="col-sm-3 border-right d-none d-sm-block p-0">
                     <div id="contacts-list" class="contacts-list">
-                        <div class="contact selected-contact" name="testIdOne">
-                            <div class="display-name">Test Person</div>
-                            <div class="recent-message">Hello there</div>
-                        </div>
-                        <div class="contact" name="testIdTwo">
-                            <div class="display-name">Another Person</div>
-                            <div class="recent-message">Why not add birds into minecraft and have birdsong during the
-                                dawn.</div>
-                        </div>
-                        <div class="contact" name="testIdThree">
-                            <div class="display-name">D. Rose</div>
-                            <div class="recent-message">I like to design games and such and a friend of mine said if I
-                                give him £750 he would make it happen for me, but its got to be cash. Would you support
-                                me and follow me on your youtubes?</div>
-                        </div>
-                        <div class="contact" name="testIdFour">
-                            <div class="display-name">Dan Sydes</div>
-                            <div class="recent-message">Thats literally what im saying</div>
-                        </div>
-                        <div class="contact" name="testIdFive">
-                            <div class="display-name">Unmessaged Person</div>
-                            <div class="recent-message">Send Unmessaged Person a message...</div>
-                        </div>
                     </div>
                 </div>
 
                 <div class="col-sm-9 mt-auto">
-                    <div id="chat-history" class="row chat-history">
-                        <div id="chat-history-column" class="col">
-                        </div>
+                    <div id="chat-history-row" class="row chat-history-row">
+                        <div id="chat-history" class="col"></div>
                     </div>
                     <div class="row">
                         <div class="col border-top p-0">
@@ -155,23 +131,23 @@
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="add-contacts-model-title">Add Contact</h5>
+                    <h5 class="modal-title" id="add-contacts-model-title">Add Contacts</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div id="contact-requests"></div>
                 <form id="add-contact-form" action="">
                     <div class="modal-body">
-                        <label id="add-contact-feedback" class="align-middle"></label>
+                        <div id="contact-requests" class="pb-1"></div>
                         <div class="form-group">
                             <label for="contact-email-input">Email</label>
                             <input id="contact-email-input" class="form-control" type="text">
                         </div>
+                        <div id="add-contact-feedback" class="align-middle"></div>
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-secondary" data-dismiss="modal" type="button">Close</button>
-                        <button class="btn btn-primary" type="submit">Save Changes</button>
+                        <button class="btn btn-primary" type="submit">Send Request</button>
                     </div>
                 </form>
             </div>
