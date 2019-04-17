@@ -375,19 +375,27 @@ function initLogin() {
 
     function showSignup() {
         signin = false;
-        $("#confirm-password-input").show();
-        $("#switch-button").html("Sign in");
-        $("#submit-button").html("Sign up");
-        $("#title").html("Sign up");
+        $("#switch-button").fadeOut(200, function() {
+            $("#confirm-password-input").slideDown(400, () => {
+                $(this).text("Back").fadeIn(200);
+                $("#submit-button").text("Sign up").fadeIn(200);
+            });
+        });
+        $("#title, #submit-button").fadeOut(200);
+        $("#title").fadeOut(400, function() { $(this).text("Sign up").fadeIn(400); });
     }
 
     function showSignin() {
         signin = true;
         $("#confirm-password-input").val("");
-        $("#confirm-password-input").hide();
-        $("#switch-button").html("Sign up");
-        $("#submit-button").html("Sign in");
-        $("#title").html("Sign in");
+        $("#switch-button").fadeOut(200, function() {
+            $("#confirm-password-input").slideUp(400, () => {
+                $(this).text("Sign up").fadeIn(200);
+                $("#submit-button").text("Sign up").fadeIn(200);
+            });
+        });
+        $("#submit-button").fadeOut(200);
+        $("#title").fadeOut(400, function() { $(this).text("Sign in").fadeIn(400); });
     }
 
     function clearSignin() {
