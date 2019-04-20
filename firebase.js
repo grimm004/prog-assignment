@@ -17,7 +17,7 @@ if (onlineFirebase)
 
 const clientFileLocation = `${__dirname}\\firebase\\5.9.3`;
 
-// The express middleware function to be used in a producation environment (using the real firebase service)
+// The express middleware function to be used in a production environment (using the real firebase service)
 function middleware(req, res, next) {
     // Serve the active firebase app, auth and database script files.
     switch (req.originalUrl) {

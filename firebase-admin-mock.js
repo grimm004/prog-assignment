@@ -235,14 +235,14 @@ class Reference {
     }
 
     set(value) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             databaseSet(this.reference, value);
             resolve();
         });
     }
 
     update(value) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             databaseUpdate(this.reference, value);
             resolve();
         });
@@ -253,7 +253,7 @@ class Reference {
     }
 
     remove() {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             databaseRemove(this.reference);
             resolve();
         });

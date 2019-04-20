@@ -126,8 +126,8 @@ function addAsContacts(contact0, contact1) {
     // Create conversation node for contacts
     var conversationId = db.ref("conversation").push({ created: timestamp }).key;
     // Add users as contacts
-    db.ref(`user/${contact1.uid}/contacts/${contact0.uid}`).set({ dateAdded: timestamp, conversationId: conversationId, recentMessage: "", recentMessageTimestamp: timestamp, recentMessageViewed: false });
-    db.ref(`user/${contact0.uid}/contacts/${contact1.uid}`).set({ dateAdded: timestamp, conversationId: conversationId, recentMessage: "", recentMessageTimestamp: timestamp, recentMessageViewed: false });
+    db.ref(`user/${contact1.uid}/contacts/${contact0.uid}`).set({ timestamp: timestamp, conversationId: conversationId, recentMessage: "", recentMessageTimestamp: timestamp, recentMessageViewed: false });
+    db.ref(`user/${contact0.uid}/contacts/${contact1.uid}`).set({ timestamp: timestamp, conversationId: conversationId, recentMessage: "", recentMessageTimestamp: timestamp, recentMessageViewed: false });
     // Remove any contact request information
     db.ref(`user/${contact1.uid}/contactRequests/${contact0.uid}`).remove();
     db.ref(`user/${contact0.uid}/contactRequests/${contact1.uid}`).remove();
