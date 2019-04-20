@@ -1,17 +1,17 @@
 /* eslint-env browser */
 /* eslint-disable no-console */
-/* eslint indent: [2, 4, {"SwitchCase": 1}] */
 /* global firebase io */
 "use strict";
 
-firebase.initializeApp({
+var config = {
     apiKey: "AIzaSyCLctcnsWjexbgluwuyb6frIxAglkYGtOk",
     authDomain: "prognodechat.firebaseapp.com",
     databaseURL: "https://prognodechat.firebaseio.com",
     projectId: "prognodechat",
     storageBucket: "prognodechat.appspot.com",
     messagingsenderUid: "1057913300504"
-});
+};
+firebase.initializeApp(config);
 
 var auth = firebase.auth(),
     db = firebase.database();
@@ -39,23 +39,33 @@ $(() => {
         else onSignout();
     });
 
+    var listenerRefs = [];
+
     function onSignin() {
+        // Obtain a database reference to the current user
+        var userRef = db.ref(`user/${currentUser.uid}`);
+
         // Update user profile in database
-        db.ref(`user/${currentUser.uid}`)
-            .update({
-                email: currentUser.email,
-                lastSeen: Date.now(),
-            });
+        userRef.update({
+            email: currentUser.email,
+            lastSeen: Date.now(),
+        });
         // Update user profile on frontend
         $("#profile-email-input").val(currentUser.email);
-        db.ref(`user/${currentUser.uid}/displayName`).on("value", snapshot => $("#profile-display-name-input").val(snapshot.val() || ""));
 
-        // Register firebase listeners for changes in contact requests and contacts
-        db.ref(`user/${currentUser.uid}/contactRequests`).on("value", snapshot => updateContactRequestList(snapshot));
-        db.ref(`user/${currentUser.uid}/contacts`).orderByChild("recentMessageTimestamp").on("value", snapshot => updateContactsList(snapshot));
+        // Register firebase listeners for changes in displayName, contact requests and contacts list
+        var displayNameRef = userRef.child("displayName");
+        displayNameRef.on("value", snapshot => $("#profile-display-name-input").val(snapshot.val() || ""));
+        listenerRefs.push(displayNameRef);
+        var contactRequestsRef = userRef.child("contactRequests");
+        contactRequestsRef.on("value", updateContactRequestList);
+        listenerRefs.push(contactRequestsRef);
+        var contactsListRef = userRef.child("contacts");
+        contactsListRef.on("value", updateContactsList);
+        listenerRefs.push(contactsListRef);
 
         // Create and connect a message socket
-        socket = io.connect();
+        socket = io({ forceNew: true });
 
         socket.on("message", messageData => {
             if (messageData.senderUid == currentChatUid) outputMessage(messageData);
@@ -84,6 +94,8 @@ $(() => {
     }
 
     function onSignout() {
+        while (listenerRefs.length > 0)
+            listenerRefs.shift().off();
         // Disconnect the message socket
         if (socket) socket.disconnect();
         // Reset all forms
@@ -104,6 +116,9 @@ $(() => {
             .catch(errorCallback);
     }
 
+    var disableContactInteraction = () => $("#contact-requests :button, #submit-contact-button, #contact-email-input").prop("disabled", true);
+    var enableContactInteraction = () => $("#contact-requests :button, #submit-contact-button, #contact-email-input").prop("disabled", false);
+
     $("#add-contact-form").submit(
         event => {
             event.preventDefault();
@@ -115,6 +130,8 @@ $(() => {
                 "request-sent": "Contact request has been sent.",
                 "already-contacts": "Already contacts."
             };
+
+            disableContactInteraction();
 
             var email = $("#contact-email-input").val();
             if (validEmail(email) && email != currentUser.email)
@@ -131,11 +148,16 @@ $(() => {
                                 `
                             );
                             if (responseData.success) $("#contact-email-input").val("");
+                            enableContactInteraction();
                         });
                 }, error => {
                     console.log("Error occurred while accessing login token: " + error);
+                    enableContactInteraction();
                 });
-            else $("#add-contact-feedback").html("<span class=\"text-warning\"><strong>Error adding contact</strong>: Invalid email entered.</span>");
+            else {
+                $("#add-contact-feedback").html("<span class=\"text-warning\"><strong>Error adding contact</strong>: Invalid email entered.</span>");
+                enableContactInteraction();
+            }
         }
     );
 
@@ -153,6 +175,9 @@ $(() => {
 
     function openChat(contactUid) {
         if (!$(`div#contacts-list > div[name="${contactUid}"]`).hasClass("selected-contact") && currentChatUid != contactUid) {
+            markAsUntyping();
+            $("#message-input").val("");
+
             currentChatUid = contactUid;
             $("#chat-history *").remove();
 
@@ -165,7 +190,10 @@ $(() => {
         }
         $("div#contacts-list > div").removeClass("selected-contact");
         $(`div#contacts-list > div[name="${currentChatUid}"]`).addClass("selected-contact");
-        db.ref(`user/${currentUser.uid}/contacts/${currentChatUid}/recentMessageViewed`).set(true);
+        db.ref(`user/${currentUser.uid}/contacts/${currentChatUid}/recentMessageViewed`).once("value", snapshot => {
+            if (!snapshot.val())
+                db.ref(`user/${currentUser.uid}/contacts/${currentChatUid}/recentMessageViewed`).set(true);
+        });
     }
 
     function updateContactsList(contactListSnapshot) {
@@ -174,6 +202,7 @@ $(() => {
             contactListSnapshot.forEach(contact_ => {
                 var contactUid = contact_.key;
                 var contact = contact_.val();
+
                 var displayNameDiv = $("<div/>")
                     .attr("class", "display-name")
                     .html("Loading...");
@@ -224,13 +253,13 @@ $(() => {
                         .text("Accept")
                         .attr("class", "btn btn-success btn-sm")
                         .attr("type", "button")
-                        .click(() => { acceptContactRequest(contactRequest.key); });
+                        .click(() => { disableContactInteraction(); acceptContactRequest(contactRequest.key); });
 
                     var declineButton = $("<button/>")
                         .text("Decline")
                         .attr("class", "btn btn-danger btn-sm")
                         .attr("type", "button")
-                        .click(() => { removeContactRequest(contactRequest.key); });
+                        .click(() => { disableContactInteraction(); removeContactRequest(contactRequest.key); });
 
                     var buttons = $("<div/>")
                         .attr("class", "btn-group float-right")
@@ -257,16 +286,22 @@ $(() => {
             idToken => {
                 post("/acceptcontact", { idToken: idToken, contact: uid })
                     .then(response => response.json())
-                    .then(() => { });
+                    .then(() => {
+                        enableContactInteraction();
+                    });
             },
             error => {
                 console.log(error);
+                enableContactInteraction();
             }
         );
     }
 
     function removeContactRequest(uid) {
-        db.ref(`user/${currentUser.uid}/contactRequests/${uid}`).remove();
+        db.ref(`user/${currentUser.uid}/contactRequests/${uid}`).remove()
+            .then(() => {
+                enableContactInteraction();
+            });
     }
 
     // Handle sending of messages
@@ -290,15 +325,15 @@ $(() => {
             idToken => {
                 var timestamp = Date.now();
                 socket.emit("message", { idToken: idToken, targetUid: currentChatUid, text: messageText, timestamp: timestamp });
-                outputMessage({ senderUid: auth.currentUser.uid, text: messageText, timestamp: timestamp });
+                outputMessage({ senderUid: currentUser.uid, text: messageText, timestamp: timestamp });
             },
             error => console.log(error)
         );
     }
 
     function outputMessage(messageData) {
-        if (auth.currentUser && messageData) {
-            var type = messageData.senderUid == auth.currentUser.uid ? "outgoing" : "incoming";
+        if (currentUser && messageData) {
+            var type = messageData.senderUid == currentUser.uid ? "outgoing" : "incoming";
             $("#chat-history").append(`<div class="message" data-timestamp="${messageData.timestamp}"><div class="${type}">${messageData.text}</div></div>`);
             if (type == "outgoing") scrollToBottom();
             else updateScroll();
@@ -343,25 +378,31 @@ $(() => {
     var typing = false;
     var typingTargetUid = "";
     $("#message-input").on("input", () => {
-        if (typing && $("#message-input").val() == "") {
-            typing = false;
-            getIdToken(
-                idToken => {
-                    socket.emit("untyping", { idToken: idToken, targetUid: typingTargetUid });
-                },
-                error => console.log(error)
-            );
-        } else if (!typing && $("#message-input").val() != "") {
-            typing = true;
-            getIdToken(
-                idToken => {
-                    typingTargetUid = currentChatUid;
-                    socket.emit("typing", { idToken: idToken, targetUid: typingTargetUid });
-                },
-                error => console.log(error)
-            );
-        }
+        if (typing && $("#message-input").val() == "") markAsUntyping();
+        else if (!typing && $("#message-input").val() != "") markAsTyping();
     });
+
+    function markAsTyping() {
+        typing = true;
+        getIdToken(
+            idToken => {
+                typingTargetUid = currentChatUid;
+                socket.emit("typing", { idToken: idToken, targetUid: typingTargetUid });
+            },
+            error => console.log(error)
+        );
+    }
+
+    function markAsUntyping() {
+        typing = false;
+        getIdToken(
+            idToken => {
+                socket.emit("untyping", { idToken: idToken, targetUid: typingTargetUid });
+                typingTargetUid = "";
+            },
+            error => console.log(error)
+        );
+    }
 
     initLogin();
 });
@@ -375,27 +416,27 @@ function initLogin() {
 
     function showSignup() {
         signin = false;
-        $("#switch-button").fadeOut(200, function() {
-            $("#confirm-password-input").slideDown(400, () => {
+        $("#switch-button").fadeOut(200, function () {
+            $("#confirm-password-input").fadeIn(400, () => {
                 $(this).text("Back").fadeIn(200);
                 $("#submit-button").text("Sign up").fadeIn(200);
             });
         });
         $("#title, #submit-button").fadeOut(200);
-        $("#title").fadeOut(400, function() { $(this).text("Sign up").fadeIn(400); });
+        $("#title").fadeOut(400, function () { $(this).text("Sign up").fadeIn(400); });
     }
 
     function showSignin() {
         signin = true;
         $("#confirm-password-input").val("");
-        $("#switch-button").fadeOut(200, function() {
-            $("#confirm-password-input").slideUp(400, () => {
+        $("#switch-button").fadeOut(200, function () {
+            $("#confirm-password-input").fadeOut(400, () => {
                 $(this).text("Sign up").fadeIn(200);
-                $("#submit-button").text("Sign up").fadeIn(200);
+                $("#submit-button").text("Sign in").fadeIn(200);
             });
         });
         $("#submit-button").fadeOut(200);
-        $("#title").fadeOut(400, function() { $(this).text("Sign in").fadeIn(400); });
+        $("#title").fadeOut(400, function () { $(this).text("Sign in").fadeIn(400); });
     }
 
     function clearSignin() {
@@ -411,7 +452,8 @@ function initLogin() {
             "auth/wrong-password": "Invalid email or password.",
             "auth/user-not-found": "Invalid email or password.",
             "auth/weak-password": "Password is too weak.",
-            "auth/too-many-requests": "To many unsuccessful login attemts."
+            "auth/too-many-requests": "To many unsuccessful login attemts.",
+            "auth/email-already-in-use": "This email is already in use."
         };
 
         if (dataValidation())

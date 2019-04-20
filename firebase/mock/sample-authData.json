@@ -1,0 +1,18 @@
+{
+    "accounts": {
+        "O7XkOy0IxV0sKV8AGyidAscTBt5M": {
+            "email": "test@test.test"
+        },
+        "ksDxJDhKjVTzVsgxM5nC8OlfqBtP": {
+            "email": "test2@test.test"
+        },
+        "jhGDhj0TjThRYQSNtxeJctcWMK8c": {
+            "email": "test3@test.test"
+        }
+    },
+    "emails": {
+        "test@test.test": "O7XkOy0IxV0sKV8AGyidAscTBt5M",
+        "test2@test.test": "ksDxJDhKjVTzVsgxM5nC8OlfqBtP",
+        "test3@test.test": "jhGDhj0TjThRYQSNtxeJctcWMK8c"
+    }
+}

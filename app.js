@@ -2,44 +2,40 @@
 /* eslint-disable no-console */
 "use strict";
 
-var express = require("express");
-var http = require("http");
-var socketio = require("socket.io");
-var admin = require("firebase-admin");
+const express = require("express");
+const http = require("http");
+const socketio = require("socket.io");
+const firebase = require("./firebase");
 
-var serviceAccount = require("./adminkey.json");
+const app = express();
+const httpServer = http.Server(app);
+const io = socketio(httpServer);
+const db = firebase.admin.database();
+const auth = firebase.admin.auth();
 
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://prognodechat.firebaseio.com"
-});
+firebase.initServer(io);
 
-var app = express();
-var httpServer = http.Server(app);
-var io = socketio(httpServer);
-
-app.use(express.static("public", { extensions: ["html", "htm", "ico", "png"], }));
 app.use(express.json());
+app.use(firebase.middleware);
+app.use(express.static("public", { extensions: ["html", "htm", "ico", "png"], }));
 
 function verifyIdToken(idToken, successCallback, errorCallback) {
-    admin.auth().verifyIdToken(idToken)
+    auth.verifyIdToken(idToken)
         .then(successCallback)
         .catch(errorCallback);
 }
 
 function getUserByEmail(email, successCallback, errorCallback) {
-    admin.auth().getUserByEmail(email)
+    auth.getUserByEmail(email)
         .then(successCallback)
         .catch(errorCallback);
 }
 
 function getUser(uid, successCallback, errorCallback) {
-    admin.auth().getUser(uid)
+    auth.getUser(uid)
         .then(successCallback)
         .catch(errorCallback);
 }
-
-var db = admin.database();
 
 app.post("/addcontact",
     (req, res) =>
@@ -49,6 +45,7 @@ app.post("/addcontact",
                 // Decode the target contact's email to access its user object
                 getUserByEmail(req.body.contactEmail,
                     target => {
+                        console.log(target);
                         // Check the two users are not already contacts
                         db.ref(`user/${target.uid}/contacts/${sender.uid}`).once("value", snapshot => {
                             // If they are not already contacts, continue to next check
@@ -75,7 +72,7 @@ app.post("/addcontact",
                     },
                     error => {
                         console.log("Error fetching user data:", error);
-                        res.json({ success: false, code: error.errorInfo.code });
+                        res.json({ success: false, code: error.errorInfo ? error.errorInfo.code : "unknown" });
                     }
                 ),
             error => {
@@ -100,7 +97,7 @@ app.post("/acceptcontact",
                     }
                 ),
             error => {
-                console.log("Error occurred authenticating contact add request: ", error);
+                console.log("Error occurred authenticating contact accept request: ", error);
                 res.json({ success: false, code: "unknown" });
             }
         )
@@ -128,8 +125,6 @@ function addAsContacts(contact0, contact1) {
     var timestamp = Date.now();
     // Create conversation node for contacts
     var conversationId = db.ref("conversation").push({ created: timestamp }).key;
-    db.ref(`conversation/${conversationId}/members/${contact0.uid}`).set(true);
-    db.ref(`conversation/${conversationId}/members/${contact1.uid}`).set(true);
     // Add users as contacts
     db.ref(`user/${contact1.uid}/contacts/${contact0.uid}`).set({ dateAdded: timestamp, conversationId: conversationId, recentMessage: "", recentMessageTimestamp: timestamp, recentMessageViewed: false });
     db.ref(`user/${contact0.uid}/contacts/${contact1.uid}`).set({ dateAdded: timestamp, conversationId: conversationId, recentMessage: "", recentMessageTimestamp: timestamp, recentMessageViewed: false });
@@ -148,10 +143,9 @@ io.on("connection",
                 verifyIdToken(data.idToken,
                     user => {
                         socket.uid = user.uid;
-
-                        socket.contacts = [];
                         db.ref(`user/${socket.uid}/contacts`).on("value", contactsSnapshot => {
-                            contactsSnapshot.forEach(contactSnapshot => { socket.contacts.push(contactSnapshot.key); });
+                            socket.contacts = [];
+                            contactsSnapshot.forEach(contactSnapshot => socket.contacts.push(contactSnapshot.key));
                         });
                     }, error => console.log(error));
             });
