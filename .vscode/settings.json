@@ -1,11 +1,13 @@
 {
     "cSpell.words": [
         "adminkey",
+        "app",
         "authenticator",
         "authenticator's",
         "fbmock",
         "firestore",
         "getidtoken",
+        "initialise",
         "realtime",
         "signin",
         "signout",

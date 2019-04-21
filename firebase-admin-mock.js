@@ -144,7 +144,7 @@ function sendRefData(socket, type, ref) {
 }
 
 var dataListeners = [];
-function initServer(io) {
+function initialiseApp(io) {
     const dbApp = io.of("/fbmock-db");
     dbApp.on("connection", socket => {
         var listeners = [];
@@ -229,7 +229,7 @@ class Reference {
         this.reference = path;
     }
 
-    ref(path) {
+    child(path) {
         if (path.length == 0) return this;
         return new Reference(this.reference + (path[0] != "/" ? "/" : "") + path);
     }
@@ -260,13 +260,17 @@ class Reference {
     }
 
     on(eventType, callback) {
-        var intermediateCallback = () => { callback(new DataSnapshot(this.reference, objectPath.get(database, this.reference.replace(/\//g, ".", null)))); };
+        var intermediateCallback = () => { callback(new DataSnapshot(this.reference, objectPath.get(database, getDbPath(this.reference), null))); };
         listenerCallbacks[this.reference] = intermediateCallback;
         intermediateCallback();
     }
 
     once(eventType, callback) {
-        callback(new DataSnapshot(this.reference, objectPath.get(database, this.reference.replace(/\//g, ".", null))));
+        callback(new DataSnapshot(this.reference, objectPath.get(database, getDbPath(this.reference), null)));
+    }
+
+    off() {
+        delete listenerCallbacks[this.reference];
     }
 }
 
@@ -284,5 +288,5 @@ module.exports = {
         };
     },
     middleware: middleware,
-    initServer: initServer
+    initialiseApp: initialiseApp
 };

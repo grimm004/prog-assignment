@@ -1,6 +1,6 @@
 # ProgNodeChat
 
-*ProgNodeChat* is a simple chat client that uses **Node.JS** for server-side interactions and static information serving, Google's **Firebase** for authentication and data storage, **Bootstrap** for responsive client-side styling, **jQuery** for client-side DOM interaction and **socket.io** for live messaging.
+*ProgNodeChat* is a simple chat client that uses [**Node.JS**](https://nodejs.org "Node.JS") for server-side interactions and static information serving, Google's [**Firebase**](https://firebase.google.com/ "Firebase") for authentication and data storage, [**Bootstrap**](https://getbootstrap.com/ "Bootstrap") for responsive client-side styling, [**jQuery**](https://jquery.com/ "jQuery") for client-side DOM interaction and [**socket.io**](https://socket.io/ "socket.io") for live messaging.
 
 ## Overview
 ### Features
