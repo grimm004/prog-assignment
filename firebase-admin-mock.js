@@ -8,8 +8,8 @@ const mockUitls = require("./firebase-mock-utils");
 const objectPath = require("object-path");
 
 const clientFileLocation = `${__dirname}\\firebase\\mock`;
-var authData = require(`${clientFileLocation}\\sample-authData.json`);
-var database = require(`${clientFileLocation}\\sample-database.json`);
+var authData = require("./sample-authData.json");
+var database = require("./sample-database.json");
 
 var previousDatabase = JSON.parse(JSON.stringify(database));
 

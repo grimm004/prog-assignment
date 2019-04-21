@@ -176,8 +176,6 @@ The following shows the application's file structure.
 |       +-- firebase-app.js: Mock client-side Firebase Application module.
 |       +-- firebase-auth.js: Mock client-side Firebase Authentication module.
 |       +-- firebase-database.js: Mock client-side Firebase Realtime Database module.
-|       +-- sample-authData.json: Sample Firebase Authentication mock database.
-|       +-- sample-database.json: Sample Firebase Realtime Database mock.
 |
 +-- public/
 |   |
@@ -202,6 +200,8 @@ The following shows the application's file structure.
 +-- firebase-mock-utils.js: Utilities for the admin mock module.
 +-- firebase-config.js: Firebase online project configuration (client-side).
 +-- firebase-admin-config.js Firebase online project configuration (server-side).
++-- sample-authData.json: Sample Firebase Authentication mock database.
++-- sample-database.json: Sample Firebase Realtime Database mock.
 +-- adminkey.json: Firebase online project admin key (server-side) [default location].
 +-- LICENSE: Project license
 +-- README.md: Project documentation
