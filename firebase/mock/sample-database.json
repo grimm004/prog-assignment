@@ -11,7 +11,7 @@
             },
             "contacts": {
                 "ksDxJDhKjVTzVsgxM5nC8OlfqBtP": {
-                    "dateAdded": 1555772942101,
+                    "timestamp": 1555772942101,
                     "conversationId": "-LcvHmRMgytUpHnpYCmq",
                     "recentMessage": "",
                     "recentMessageTimestamp": 1555772942101,
@@ -25,14 +25,14 @@
             "lastSeen": 1555772938162,
             "contacts": {
                 "O7XkOy0IxV0sKV8AGyidAscTBt5M": {
-                    "dateAdded": 1555772942101,
+                    "timestamp": 1555772942101,
                     "conversationId": "-LcvHmRMgytUpHnpYCmq",
                     "recentMessage": "",
                     "recentMessageTimestamp": 1555772942101,
                     "recentMessageViewed": true
                 },
                 "jhGDhj0TjThRYQSNtxeJctcWMK8c": {
-                    "dateAdded": 1555772942900,
+                    "timestamp": 1555772942900,
                     "conversationId": "-LcvHmcpw9DQCCBVP7r7",
                     "recentMessage": "",
                     "recentMessageTimestamp": 1555772942900,
@@ -45,7 +45,7 @@
             "lastSeen": 1555772921407,
             "contacts": {
                 "ksDxJDhKjVTzVsgxM5nC8OlfqBtP": {
-                    "dateAdded": 1555772942900,
+                    "timestamp": 1555772942900,
                     "conversationId": "-LcvHmcpw9DQCCBVP7r7",
                     "recentMessage": "",
                     "recentMessageTimestamp": 1555772942900,

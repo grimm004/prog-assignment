@@ -3,7 +3,7 @@
 /* eslint-env node */
 "use strict";
 
-var onlineFirebase = !true;
+var onlineFirebase = true;
 
 const firebaseAdmin = require("firebase-admin");
 const firebaseAdminMock = require("./firebase-admin-mock");
