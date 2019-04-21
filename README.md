@@ -1,6 +1,6 @@
 # ProgNodeChat
 
-**ProgNodeChat** is a simple chat client that uses **Node.JS** for server-side interactions and static information serving, Google's **Firebase** for authentication and data storage, **Bootstrap** for responsive client-side styling, **jQuery** for client-side DOM interaction and **socket.io** for live messaging.
+*ProgNodeChat* is a simple chat client that uses **Node.JS** for server-side interactions and static information serving, Google's **Firebase** for authentication and data storage, **Bootstrap** for responsive client-side styling, **jQuery** for client-side DOM interaction and **socket.io** for live messaging.
 
 ## Overview
 ### Features
@@ -18,6 +18,18 @@
 
 ### Compatibility
 The application has been tested and works on Google Chrome, Mozilla Firefox and Microsoft Edge. It is not compatible with Internet Explorer.
+
+### Future Features
+- More sign up options.
+- Email address verification.
+- Better profile with more information.
+- Password reset.
+- Send an email to users who do not have an account when adding contacts.
+- More optimised data downloaded storage (for less Firebase bandwidth usage).
+- More optimised database structure.
+- Show whether contacts are online or not.
+- Timestamps on messages.
+- Ability to delete messages.
 
 ## Install and Setup
 The repository is an NPM environment, meaning required packages can be installed simply using:
@@ -100,8 +112,18 @@ Finally, run the application using:
 npm start
 ```
 
-## Usage
-When started, unless configured otherwise, the server is hosted on port 8080, this means the application can be connected 
+## App Usage
+When started, unless configured otherwise, the server is hosted on port 8080, this means the application can be accessed at ***localhost:8080*** or ***127.0.0.1:8080*** or (for access on other devices on the local network) ***(ip):8080*** where (ip) is the local IP of the device hosting the Node server.
+
+Once connected, a sign in form is displayed. To access the sign up form, press the "Sign up" button. Signing up will automatically sign the new account in.
+
+When signing in for the first time, the contacts list will be empty; on larger devices this is situated on the left sidebar, on smaller devices and phones this is located by pressing the 'Contacts' button in the collapsed navbar menu at the top. The navbar (when not stacked), from right to left, contains a sign out button, a button to view the license, a button to view and edit the user profile and a button to add contacts.
+
+It is first recommended that a display name be set for the account for better identification when chatting, this can be done by pressing the 'My Profile' button on the navbar. Simply fill in the 'Display Name' field and press 'Save Changes'.
+
+To add contacts, press the 'Add Contacts' button on the navbar and enter the email address of a desired contact. Incoming contact requests also appear in the 'Add Contacts' popup where they can be accepted or declined.
+
+Once contacts have been added they appear in the contacts list. The last message sent to a chat is displayed under each contact name, of these unread messages appear in bold. If the contact has not set a display name their email address is shown. Selecting a contact will populate the chat window with past messages. If a user is connected to the chat when a message is being sent typed out, the sender is shown as typing in the contacts list.
 
 ## Database Structure
 A Firebase Realtime database is a type of 'No-SQL' database, this means it is not strictly structured in a relational manner. Instead it is structured as a large JSON-like object with keys (known as 'nodes') and values where a value can be a primitive datatype value or an object, this produces a tree structure. An optimal No-SQL database layout is 'flat', meaning as a tree it has a height as small as possible. Unlike JSON however, objects (nodes) cannot be empty and arrays and lists are not supported, this is handled by storing an object with either the keys being the index of each value or by selecting alphabetically ordered (string) keys based on time, these are automatically handled by Firebase (only the second option has been implemented in the database mock).

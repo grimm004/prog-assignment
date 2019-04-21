@@ -4,6 +4,7 @@
 "use strict";
 
 var onlineFirebase = true;
+// TODO: Show the last message sender
 
 const firebaseAdmin = require("firebase-admin");
 const firebaseAdminMock = require("./firebase-admin-mock");
