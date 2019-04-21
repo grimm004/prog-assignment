@@ -3,16 +3,6 @@
 /* global firebase io */
 "use strict";
 
-var config = {
-    apiKey: "AIzaSyCLctcnsWjexbgluwuyb6frIxAglkYGtOk",
-    authDomain: "prognodechat.firebaseapp.com",
-    databaseURL: "https://prognodechat.firebaseio.com",
-    projectId: "prognodechat",
-    storageBucket: "prognodechat.appspot.com",
-    messagingsenderUid: "1057913300504"
-};
-firebase.initializeApp(config);
-
 var auth = firebase.auth(),
     db = firebase.database();
 

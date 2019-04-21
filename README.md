@@ -47,19 +47,19 @@ To setup a Firebase project, first create the project [here](https://console.fir
 Once created, a project overview page is displayed. To obtain the public web config data, click on the '</>' button icon, this will bring up some JavaScript embedded within a HTML template with a config variable resembling the following.
 ```javascript
 var config = {
-    apiKey: "<project key>",
-    authDomain: "<project auth domain>.firebaseapp.com",
-    databaseURL: "https://<project id>.firebaseio.com",
-    projectId: "<project id>",
-    storageBucket: "<project id>.appspot.com",
-    messagingSenderId: "<id>"
+    apiKey: "(project key)",
+    authDomain: "(project auth domain).firebaseapp.com",
+    databaseURL: "https://(project id).firebaseio.com",
+    projectId: "(project id)",
+    storageBucket: "(project id).appspot.com",
+    messagingSenderId: "(id)"
 };
 ```
-Copy and paste this into *public/js/index.js* just before `firebase.initializeApp(config);` (or place it in the file such that the object the *config* variable represents ends up being passed into the *initializeApp* firebase function). It is worth noting that it is safe for this information to be publicly available provided that Realtime database rules have been properly implemented, sample rules will be provided later if desired.
+Copy and paste this into *firebase-config.js* just before `firebase.initializeApp(config);` (or place it in the file such that the object represented by the *config* variable ends up being passed into the *initializeApp* firebase function). It is worth noting that it is safe for this information to be publicly available provided that Realtime database rules have been properly implemented, sample rules will be provided later if desired.
 
-The application uses Firebase Authentication to manage user accounts, for the sake of simplicity only Email and Password authentication has been configured to work with Firebase. To enable this in the Firebase Console, open the 'Authentication' tab on the left, then below the title open the 'Sign-in method' tab. Here a list of supported sign in methods are shown, click on the first one ('Email/Password') and enable it (don't enable 'passwordless sign-in').
+The application uses Firebase Authentication to manage user accounts, for the sake of simplicity only Email and Password authentication has been configured to work. To enable this in the Firebase Console, open the 'Authentication' tab on the left, then below the title open the 'Sign-in method' tab. Here a list of supported sign in methods are shown, click on the first one ('Email/Password') and enable it ('passwordless sign-in' should not be enabled).
 
-The Node.JS server uses the firebase-admin package, this requires a project "service account" to be created. This is done by going into the project settings (clicking the gear icon to the right of 'Project Interview' on the left of the console and opening 'Project Settings'). Next open the 'Service accounts' tab and click "Generate new private key", this will download a JSON file with a private service account key, save this in the project's root directory as 'adminkey.json' for the server to automatically use it. If a different location or name is required, *firebase.js* can be edited on line 14 to reflect the new location to import the file from.
+The Node.JS server uses the firebase-admin package, this requires a project "service account" to be created. This is done by going into the project settings (clicking the gear icon to the right of 'Project Overview' on the left of the console and opening 'Project Settings'). Next open the 'Service accounts' tab and click "Generate new private key", this will download a JSON file with a private service account key, save this in the project's root directory as 'adminkey.json' for the server to automatically use it. Next open *firebase-admin-config.js*, if the service account key is saved differently to that previously indicated, edit line 6 to point to the correct import location. On line 7, set the *databaseURL* property to the same *databaseURL* value in the client config object (usually *https://(project id).firebaseio.com*).
 
 Recently, Firebase have started switching over to their 'Cloud Firestore' databases which uses a collection of documents model, this application however uses their original 'Realtime' database for its storage.
 
@@ -84,7 +84,7 @@ To setup the Realtime database with the project, open the 'Database' tab on the 
 ```
 These rules state that authenticated clients can access (to read from and write to) the whole of the 'user/\<uid>' node in the database only if '\<uid>' is the Authenticator's assigned account unique identifier for the user. This means that clients can only access and modify their own data node. These rules also state that all authenticated clients may read the *displayName* and *email* of any other user provided that they know their UID.
 
-Finally, in *firebase.js* make sure the variable *onlineFirebase* is set to *true* and run the application using:
+Finally, open *server.js* and make sure the variable *onlineFirebase* is set to *true* and run the application using:
 ```
 npm start
 ```
@@ -94,7 +94,7 @@ The Firebase Mock provided with the application mirrors the functionality used i
 
 **Disclaimer:** The Firebase Mock provided does **no** authentication or database access validation and uses many shortcuts to provide the *same* functionality as provided by the real service. Thus, **it should not be used in any production build of the application**.
 
-To setup the firebase mock, simply go into *firebase.js* and set the *onlineFirebase* variable to *false*.
+To setup the Firebase mock, simply go into *server.js* and set the *onlineFirebase* variable to *false*. If this is set to true and no Firebase admin key is found the server will use the mock.
 
 The initial sample data used for the mock can be found in *firebase/mock/sample-authData.json* and *firebase/mock/sample-database.json*.
 
