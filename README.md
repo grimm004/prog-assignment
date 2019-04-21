@@ -129,6 +129,7 @@ Once contacts have been added they appear in the contacts list. The last message
 A Firebase Realtime database is a type of 'No-SQL' database, this means it is not strictly structured in a relational manner. Instead it is structured as a large JSON-like object with keys (known as 'nodes') and values where a value can be a primitive datatype value or an object, this produces a tree structure. An optimal No-SQL database layout is 'flat', meaning as a tree it has a height as small as possible. Unlike JSON however, objects (nodes) cannot be empty and arrays and lists are not supported, this is handled by storing an object with either the keys being the index of each value or by selecting alphabetically ordered (string) keys based on time, these are automatically handled by Firebase (only the second option has been implemented in the database mock).
 
 This application uses the following database layout:
+```
 - user
     - (uid)
         - lastSeen: integer
@@ -152,8 +153,61 @@ This application uses the following database layout:
                 - text: string
                 - senderId: (uid) string
                 - timestamp: number
+```
 
 As can be seen, this is not the most optimal data structure however it is relatively simple.
+
+## File Structure
+The following shows the application's file structure.
+
+```
+./
+|
++-- firebase/
+|   |
+|   +-- (firebase version)/
+|   |   |
+|   |   +-- firebase-app.js: Client-side Firebase Application module.
+|   |   +-- firebase-auth.js: Client-side Firebase Authentication module.
+|   |   +-- firebase-database.js: Client-side Firebase Realtime Database module.
+|   |
+|   +-- mock/
+|       |
+|       +-- firebase-app.js: Mock client-side Firebase Application module.
+|       +-- firebase-auth.js: Mock client-side Firebase Authentication module.
+|       +-- firebase-database.js: Mock client-side Firebase Realtime Database module.
+|       +-- sample-authData.json: Sample Firebase Authentication mock database.
+|       +-- sample-database.json: Sample Firebase Realtime Database mock.
+|
++-- public/
+|   |
+|   +-- css/
+|   |   |
+|   |   +-- styles.css: Application front-end custom CSS styles.
+|   |
+|   +-- js/
+|   |   |
+|   |   +-- index.js
+|   |
+|   +-- img/: Various icon images.
+|   |
+|   +-- index.html: Application front-end HTML.
+|   +-- site.webmanifest: Front-end site manifest (for icons).
+|
++-- server.js: Entry-point of the application.
++-- app.js: Express and socket.io application.
++-- app.test.js: Jest automated test file.
++-- firebase-manager.js: Firebase import manager (determines firebase instance to supply).
++-- firebase-admin-mock.js: Firebase admin module mock (server side).
++-- firebase-mock-utils.js: Utilities for the admin mock module.
++-- firebase-config.js: Firebase online project configuration (client-side).
++-- firebase-admin-config.js Firebase online project configuration (server-side).
++-- adminkey.json: Firebase online project admin key (server-side) [default location].
++-- LICENSE: Project license
++-- README.md: Project documentation
++-- package.json: Project configuration.
++-- package-lock.json: Project module configuration.
+```
 
 ## License
 The license is available in the *LICENSE* file in the root of the repository.

@@ -26,6 +26,9 @@ function middleware(req, res, next) {
             case "/firebase/firebase-database.js":
                 res.sendFile(`${clientFileLocation}\\firebase-database.js`);
                 break;
+            case "/firebase/firebase-config.js":
+                res.sendFile(`${__dirname}\\firebase-config.js`);
+                break;
             default:
                 // If no firebase script is served, move to the next middleware.
                 next();
