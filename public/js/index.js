@@ -3,10 +3,12 @@
 /* global firebase io */
 "use strict";
 
+// Acccess firebase auth and database modules
 var auth = firebase.auth(),
     db = firebase.database();
 
 $(() => {
+    /* Window View Control */
     function showSigninWindow() {
         // Hide the chat window divider and show the sign in window divider
         $("#chat-window").hide();
@@ -22,6 +24,8 @@ $(() => {
     // Initially show the sign in window
     showSigninWindow();
 
+    /* Authentication Management */
+    // 
     var currentUser, socket, currentChatUid;
     auth.onAuthStateChanged(function (user) {
         currentUser = user;
@@ -33,7 +37,7 @@ $(() => {
 
     function onSignin() {
         // Obtain a database reference to the current user
-        var userRef = db.ref(`user/${currentUser.uid}`);
+        const userRef = db.ref(`user/${currentUser.uid}`);
 
         // Update user profile in database
         userRef.update({
@@ -44,37 +48,41 @@ $(() => {
         $("#profile-email-input").val(currentUser.email);
 
         // Register firebase listeners for changes in displayName, contact requests and contacts list
-        var displayNameRef = userRef.child("displayName");
+        const displayNameRef = userRef.child("displayName");
         displayNameRef.on("value", snapshot => $("#profile-display-name-input").val(snapshot.val() || ""));
         listenerRefs.push(displayNameRef);
-        var contactRequestsRef = userRef.child("contactRequests");
+        const contactRequestsRef = userRef.child("contactRequests");
         contactRequestsRef.on("value", updateContactRequestList);
         listenerRefs.push(contactRequestsRef);
-        var contactsListRef = userRef.child("contacts");
-        contactsListRef.on("value", updateContactsList);
+        const contactsListRef = userRef.child("contacts");
+        contactsListRef.orderByChild("timestamp").on("value", updateContactsList);
         listenerRefs.push(contactsListRef);
 
-        // Create and connect a message socket
+        // Create and connect a socket
         socket = io({ forceNew: true });
 
+        // Create a listener for messages
         socket.on("message", messageData => {
             if (messageData.senderUid == currentChatUid) outputMessage(messageData);
         });
 
+        // Create a listener for typing status
         socket.on("typing", typingData => {
-            var contactDiv = $(`#contacts-list div[name="${typingData.senderUid}"]`);
+            const contactDiv = $(`#contacts-list div[name="${typingData.senderUid}"]`);
             contactDiv.find("div.recent-message").html(`${contactDiv.find("div.display-name").text()} is typing...`);
         });
 
+        // Create a listener for untyping status
         socket.on("untyping", typingData => {
             db.ref(`user/${currentUser.uid}/contacts/${typingData.senderUid}/recentMessage`).once("value",
                 snapshot => {
-                    var contactDiv = $(`#contacts-list div[name="${typingData.senderUid}"]`);
+                    const contactDiv = $(`#contacts-list div[name="${typingData.senderUid}"]`);
                     contactDiv.find("div.recent-message").html(snapshot.val() || `Send ${contactDiv.find("div.display-name").text()} a message...`);
                 }
             );
         });
 
+        // Send the server client auth information
         getIdToken(idToken => {
             socket.emit("auth", { idToken: idToken });
         }, error => console.log(error));
@@ -84,6 +92,10 @@ $(() => {
     }
 
     function onSignout() {
+        // Show the sign in window
+        showSigninWindow();
+        
+        // Remove database listeners
         while (listenerRefs.length > 0)
             listenerRefs.shift().off();
         // Disconnect the message socket
@@ -95,9 +107,8 @@ $(() => {
         $("#contacts-list *").remove();
         $("#add-contact-feedback *").remove();
         $("#profile-update-feedback *").remove();
+        // Reset the current chat contact uid
         currentChatUid = "";
-        // Show the sign in window
-        showSigninWindow();
     }
 
     function getIdToken(successCallback, errorCallback) {
@@ -106,14 +117,14 @@ $(() => {
             .catch(errorCallback);
     }
 
-    var disableContactInteraction = () => $("#contact-requests :button, #submit-contact-button, #contact-email-input").prop("disabled", true);
-    var enableContactInteraction = () => $("#contact-requests :button, #submit-contact-button, #contact-email-input").prop("disabled", false);
+    const disableContactInteraction = () => $("#contact-requests :button, #submit-contact-button, #contact-email-input").prop("disabled", true);
+    const enableContactInteraction = () => $("#contact-requests :button, #submit-contact-button, #contact-email-input").prop("disabled", false);
 
     $("#add-contact-form").submit(
         event => {
             event.preventDefault();
 
-            var addContactMessages = {
+            const addContactMessages = {
                 "auth/user-not-found": "User could not be found.",
                 "request-already-sent": "A contact request has already been sent.",
                 "contact-added": "Contact has been added.",
@@ -123,7 +134,7 @@ $(() => {
 
             disableContactInteraction();
 
-            var email = $("#contact-email-input").val();
+            const email = $("#contact-email-input").val();
             if (validEmail(email) && email != currentUser.email)
                 getIdToken(idToken => {
                     post("/addcontact", { idToken: idToken, contactEmail: email })
@@ -190,16 +201,16 @@ $(() => {
         $("#contacts-list *").remove();
         if (contactListSnapshot.hasChildren()) {
             contactListSnapshot.forEach(contact_ => {
-                var contactUid = contact_.key;
-                var contact = contact_.val();
+                const contactUid = contact_.key;
+                const contact = contact_.val();
 
-                var displayNameDiv = $("<div/>")
+                const displayNameDiv = $("<div/>")
                     .attr("class", "display-name")
                     .html("Loading...");
-                var recentMessageDiv = $("<div/>")
+                const recentMessageDiv = $("<div/>")
                     .attr("class", "recent-message")
                     .html("Loading...");
-                var contactDiv = $("<div/>")
+                const contactDiv = $("<div/>")
                     .attr("class", "contact")
                     .attr("name", contactUid)
                     .append(displayNameDiv, recentMessageDiv)
@@ -210,13 +221,13 @@ $(() => {
                 db.ref(`user/${contactUid}/displayName`).once("value",
                     displayNameSnapshot => {
                         if (displayNameSnapshot.exists()) {
-                            var displayName = displayNameSnapshot.val();
+                            const displayName = displayNameSnapshot.val();
                             displayNameDiv.text(displayName);
                             recentMessageDiv.text(contact.recentMessage || `Send ${displayName} a message...`);
                         }
                         else db.ref(`user/${contactUid}/email`).once("value",
                             emailSnapshot => {
-                                var displayName = emailSnapshot.exists() ? emailSnapshot.val() : contactUid;
+                                const displayName = emailSnapshot.exists() ? emailSnapshot.val() : contactUid;
                                 displayNameDiv.text(displayName);
                                 recentMessageDiv.text(contact.recentMessage || `Send ${displayName} a message...`);
                             });
@@ -238,29 +249,29 @@ $(() => {
             $("#contact-requests *").remove();
             contactRequestSnapshot.forEach(
                 contactRequest => {
-                    var email = contactRequest.val().email;
-                    var acceptButton = $("<button/>")
+                    const email = contactRequest.val().email;
+                    const acceptButton = $("<button/>")
                         .text("Accept")
                         .attr("class", "btn btn-success btn-sm")
                         .attr("type", "button")
                         .click(() => { disableContactInteraction(); acceptContactRequest(contactRequest.key); });
 
-                    var declineButton = $("<button/>")
+                    const declineButton = $("<button/>")
                         .text("Decline")
                         .attr("class", "btn btn-danger btn-sm")
                         .attr("type", "button")
                         .click(() => { disableContactInteraction(); removeContactRequest(contactRequest.key); });
 
-                    var buttons = $("<div/>")
+                    const buttons = $("<div/>")
                         .attr("class", "btn-group float-right")
                         .attr("role", "group")
                         .append(acceptButton, declineButton);
 
-                    var column = $("<div/>")
+                    const column = $("<div/>")
                         .attr("class", "col")
                         .append(`<div class="d-inline">${email}</div>`, buttons);
 
-                    var requestRow = $("<div/>")
+                    const requestRow = $("<div/>")
                         .attr("class", "row pb-1")
                         .attr("name", email)
                         .append(column);
@@ -522,7 +533,7 @@ function initLogin() {
     }
 
     function clearAlerts() {
-        $("#alerts").html("");
+        $("#alerts *").remove();
     }
 }
 

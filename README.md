@@ -128,7 +128,7 @@ Once contacts have been added they appear in the contacts list. The last message
 ## Database Structure
 A Firebase Realtime database is a type of 'No-SQL' database, this means it is not strictly structured in a relational manner. Instead it is structured as a large JSON-like object with keys (known as 'nodes') and values where a value can be a primitive datatype value or an object, this produces a tree structure. An optimal No-SQL database layout is 'flat', meaning as a tree it has a height as small as possible. Unlike JSON however, objects (nodes) cannot be empty and arrays and lists are not supported, this is handled by storing an object with either the keys being the index of each value or by selecting alphabetically ordered (string) keys based on time, these are automatically handled by Firebase (only the second option has been implemented in the database mock).
 
-This application uses the following database layout:
+This application uses the following database layout (note that uids are provided by the Firebase Authentication module):
 ```
 - user
     - (uid)
@@ -140,7 +140,7 @@ This application uses the following database layout:
                 - timestamp: integer
         - contacts
             - (uid)
-                - conversationId: string
+                - conversationId: (conversationId) string
                 - timestamp: integer
                 - recentMessage: string
                 - recentMessageTimestamp: integer
@@ -155,39 +155,39 @@ This application uses the following database layout:
                 - timestamp: number
 ```
 
-As can be seen, this is not the most optimal data structure however it is relatively simple.
+As can be seen, this is not the most optimal data structure however it makes client-side database requests relatively simple. The two main entities are Users and Conversations (collections of messages). Each user stores time time hey last signed in, their display name, email, their contacts list and contact requests list, each entry into the contacts list stores a reference (id) to the conversation generated for the two contacts. Each conversation consists of a creation timestamp and message list. Each message consists of the text that was sent, the uid of the sender and a timestamp.
 
 ## File Structure
 The following shows the application's file structure.
 
 ```
-./
+/.
 |
-+-- firebase/
++-- /firebase
 |   |
-|   +-- (firebase version)/
+|   +-- /(firebase version)
 |   |   |
 |   |   +-- firebase-app.js: Client-side Firebase Application module.
 |   |   +-- firebase-auth.js: Client-side Firebase Authentication module.
 |   |   +-- firebase-database.js: Client-side Firebase Realtime Database module.
 |   |
-|   +-- mock/
+|   +-- /mock
 |       |
 |       +-- firebase-app.js: Mock client-side Firebase Application module.
 |       +-- firebase-auth.js: Mock client-side Firebase Authentication module.
 |       +-- firebase-database.js: Mock client-side Firebase Realtime Database module.
 |
-+-- public/
++-- /public: Static files accessable by clients with GET requests
 |   |
-|   +-- css/
+|   +-- /css
 |   |   |
-|   |   +-- styles.css: Application front-end custom CSS styles.
+|   |   +-- styles.css: Front-end custom CSS styles.
 |   |
-|   +-- js/
+|   +-- /js
 |   |   |
 |   |   +-- index.js
 |   |
-|   +-- img/: Various icon images.
+|   +-- /img: Various icon images.
 |   |
 |   +-- index.html: Application front-end HTML.
 |   +-- site.webmanifest: Front-end site manifest (for icons).
