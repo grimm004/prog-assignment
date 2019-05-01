@@ -203,8 +203,8 @@ The following shows the application's file structure.
 +-- sample-authData.json: Sample Firebase Authentication mock database.
 +-- sample-database.json: Sample Firebase Realtime Database mock.
 +-- adminkey.json: Firebase online project admin key (server-side) [default location].
-+-- LICENSE: Project license
-+-- README.md: Project documentation
++-- LICENSE: Project license.
++-- README.md: Project documentation.
 +-- package.json: Project configuration.
 +-- package-lock.json: Project module configuration.
 ```
