@@ -207,7 +207,7 @@ The following commands are supported:
 - once: Fetch a value from a location in the database.
 
 ### Testing
-Various Jest tests are used to verify that portions of code work the way they are supposed to (this is primarily oriented towards the Firebase mocking).
+Various Jest tests are used to verify that static files are served correctly.
 
 NPM has been configured to run an ESLint pre-test on the server-side files followed by the Jest testing. This can be run using the following:
 ```
@@ -254,7 +254,6 @@ The following shows the application's file structure.
 +-- app.test.js: Jest automated test file.
 +-- firebase-manager.js: Firebase import manager (determines firebase instance to supply).
 +-- firebase-admin-mock.js: Firebase admin module mock (server side).
-+-- firebase-admin-mock.test.js: Firebase admin module mock testing.
 +-- firebase-mock-utils.js: Utilities for the admin mock module.
 +-- firebase-config.js: Firebase online project configuration (client-side).
 +-- firebase-admin-config.js Firebase online project configuration (server-side).
