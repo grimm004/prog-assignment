@@ -157,6 +157,63 @@ This application uses the following database layout (note that uids are provided
 
 As can be seen, this is not the most optimal data structure however it makes client-side database requests relatively simple. The two main entities are Users and Conversations (collections of messages). Each user stores time time hey last signed in, their display name, email, their contacts list and contact requests list, each entry into the contacts list stores a reference (id) to the conversation generated for the two contacts. Each conversation consists of a creation timestamp and message list. Each message consists of the text that was sent, the uid of the sender and a timestamp.
 
+## Server Structure and Testing
+The Node.JS server consists of an Express app, socket.io app and (if enabled) Firebase mock (which utilises the express and socket.io apps).
+
+### Express App
+The Express app primarily serves static files and performs admin changes to the database. It uses the included static() and json() middleware (for static file serving and json body parsing respectively).
+
+The following methods are provided:
+- GET /firebase/firebase-app.js: The core Firebase app.
+- GET /firebase/firebase-auth.js: The Firebase authentication module.
+- GET /firebase/firebase-database.js: The Firebase database module.
+- GET /firebase/firebase-config.js: The client configuration.
+- POST /addcontact - returns 200 if successful, 400 if parameters are missing: Sends a contact request to the provided email address.
+- POST /acceptcontact - returns 200 if successful, 400 if parameters are missing: Accepts a contact request from the provided user id.
+- POST /messages - returns 200 if successful, 400 if parameters are missing: Fetches messages from the server from a given contact. *Note: while this does not modify the state of the server, a POST method is used over a GET message so that the Firebase ID token can be placed in the JSON body and does not need to be URL encoded.*
+
+### socket.io App
+The socket.io app provides instant live messaging to contacts who are both online.
+
+The following commands are supported:
+- auth: The clients must first identify themselves with an ID token so the server knows who is chatting
+- message: A message is sent from one client, this message is placed in the database and forwarded onto its target (if online).
+- typing: The client is marked as typing a message to a contact.
+- untyping: The client is marked as no longer typing a message to a contact.
+
+### Firebase Services
+The Firebase manager provides Express middleware to serve the Firebase client code.
+
+The Express middleware provided when using mocking serves two main purposes: Serving the mock Firebase client (instead of the real Firebase API) and standard authentication / database requests.
+
+The mock API provides the following requests:
+- GET /firebase/firebase-app.js: The core Firebase app.
+- GET /firebase/firebase-auth.js: The Firebase authentication module.
+- GET /firebase/firebase-database.js: The Firebase database module.
+- GET /firebase/firebase-config.js: The client configuration. This is not used by the mock but is sent anyway.
+- POST /fbmock-auth-signin: Signs a user in.
+- POST /fbmock-auth-signup: Signs a user up.
+- POST /fbmock-auth-signout: Signs a user out.
+- POST /fbmock-auth-getidtoken: Generates and fetches an ID token.
+- POST /fbmock-db-update: Updates the database.
+- POST /fbmock-db-set: Sets a value in the database.
+- POST /fbmock-db-remove: Removes data from the database.
+
+The Firebase mock uses socket.io (in the */fbmock-db* namespace) for client-side database change listeners.
+
+The following commands are supported:
+- on: Fetch a value from and subscribe a data change listener to a location in the database.
+- off: Unsubscribe a data change listener.
+- once: Fetch a value from a location in the database.
+
+### Testing
+Various Jest tests are used to verify that portions of code work the way they are supposed to (this is primarily oriented towards the Firebase mocking).
+
+NPM has been configured to run an ESLint pre-test on the server-side files followed by the Jest testing. This can be run using the following:
+```
+npm test
+```
+
 ## File Structure
 The following shows the application's file structure.
 
@@ -177,7 +234,7 @@ The following shows the application's file structure.
 |       +-- firebase-auth.js: Mock client-side Firebase Authentication module.
 |       +-- firebase-database.js: Mock client-side Firebase Realtime Database module.
 |
-+-- /public: Static files accessable by clients with GET requests
++-- /public: Static files accessible by clients with GET requests
 |   |
 |   +-- /css
 |   |   |
@@ -197,6 +254,7 @@ The following shows the application's file structure.
 +-- app.test.js: Jest automated test file.
 +-- firebase-manager.js: Firebase import manager (determines firebase instance to supply).
 +-- firebase-admin-mock.js: Firebase admin module mock (server side).
++-- firebase-admin-mock.test.js: Firebase admin module mock testing.
 +-- firebase-mock-utils.js: Utilities for the admin mock module.
 +-- firebase-config.js: Firebase online project configuration (client-side).
 +-- firebase-admin-config.js Firebase online project configuration (server-side).

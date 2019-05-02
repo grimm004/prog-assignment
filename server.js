@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 "use strict";
 
-var onlineFirebase = true;
+var onlineFirebase = false;
 
 const app = require("./app");
 const admin = require("./firebase-manager")(onlineFirebase, app.socketIOApp);

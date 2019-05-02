@@ -3,8 +3,10 @@
 /* global firebase fbMockRequest Promise io */
 "use strict";
 
+// Connect to the server
 const databaseSocket = io("/fbmock-db", { forceNew: true });
 
+// Define the data snapshot class (similar to the server-side one)
 class DataSnapshot {
     constructor(ref, data, orderByChild) {
         var refParts = ref.split("/");
@@ -35,6 +37,7 @@ class DataSnapshot {
     }
 }
 
+// Define the reference class  (similar to the server-side one)
 class Reference {
     constructor(path) {
         // this.reference is formatted without leading or trailing forward slashes
@@ -108,13 +111,14 @@ class Reference {
     }
 }
 
+// Define the query class (similar to the reference class)
 class Query {
     constructor(path, orderByChild) {
         // this.reference is formatted without leading or trailing forward slashes
         if (path[0] == "/") path = path.slice(1);
         if (path[path.length - 1] == "/") path = path.slice(0, path.length - 2);
         this.reference = path;
-        this.orderByChild = orderByChild.replace(/\//g, "");
+        this.orderByChild = orderByChild.replace(/\//g, ".");
         this.listenerCallbacks = {
             once: [],
             on: [],

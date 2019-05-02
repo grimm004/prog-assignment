@@ -5,6 +5,7 @@
 
 var currentUser = null;
 
+// Firebase user class
 class User {
     constructor(userInfo) {
         this.uid = userInfo.uid;
@@ -31,7 +32,7 @@ function triggerAuthStateChanged(user) {
 }
 
 function signInWithEmailAndPassword(email) {
-    // Disgard any provided passwords
+    // Discard any provided passwords
     return new Promise((resolve, reject) => {
         fbMockRequest("auth-signin", { email: email })
             .then(response => response.json())
@@ -46,7 +47,7 @@ function signInWithEmailAndPassword(email) {
 }
 
 function createUserWithEmailAndPassword(email) {
-    // Disgard any provided passwords
+    // Discard any provided passwords
     return new Promise((resolve, reject) =>
         fbMockRequest("auth-signup", { email: email })
             .then(response => response.json())

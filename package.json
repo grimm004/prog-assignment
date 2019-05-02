@@ -4,7 +4,7 @@
   "description": "Online chat program.",
   "main": "server.js",
   "scripts": {
-    "pretest": "eslint app.js app.test.js server.js public/js/index.js",
+    "pretest": "eslint app.js app.test.js server.js firebase-manager.js firebase-admin-mock.js",
     "test": "jest",
     "start": "nodemon server.js"
   },

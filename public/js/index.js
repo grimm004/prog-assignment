@@ -55,7 +55,8 @@ $(() => {
         contactRequestsRef.on("value", updateContactRequestList);
         listenerRefs.push(contactRequestsRef);
         const contactsListRef = userRef.child("contacts");
-        contactsListRef.orderByChild("timestamp").on("value", updateContactsList);
+        // Order the contacts list by the latest message timestamp
+        contactsListRef.orderByChild("recentMessageTimestamp").on("value", updateContactsList);
         listenerRefs.push(contactsListRef);
 
         // Create and connect a socket
@@ -111,19 +112,25 @@ $(() => {
         currentChatUid = "";
     }
 
+    // Short-hand function to access an ID token
     function getIdToken(successCallback, errorCallback) {
         currentUser.getIdToken(true)
             .then(successCallback)
             .catch(errorCallback);
     }
 
+    // Function to disable interaction with the contact requests list and add contact form
     const disableContactInteraction = () => $("#contact-requests :button, #submit-contact-button, #contact-email-input").prop("disabled", true);
+    // Function to enable interaction with the contact requests list and add contact form
     const enableContactInteraction = () => $("#contact-requests :button, #submit-contact-button, #contact-email-input").prop("disabled", false);
 
+    // On submission of the add contacts form...
     $("#add-contact-form").submit(
         event => {
+            // Prevent the page from reloading
             event.preventDefault();
 
+            // Define messages for potential response codes
             const addContactMessages = {
                 "auth/user-not-found": "User could not be found.",
                 "request-already-sent": "A contact request has already been sent.",
@@ -134,12 +141,15 @@ $(() => {
 
             disableContactInteraction();
 
+            // Access and validate the target email (checking it is an email and is not the same address as that of the client sending the request)
             const email = $("#contact-email-input").val();
             if (validEmail(email) && email != currentUser.email)
                 getIdToken(idToken => {
+                    // POST request to the server to add the email address as a contact
                     post("/addcontact", { idToken: idToken, contactEmail: email })
                         .then(response => response.json())
                         .then(responseData => {
+                            // Output the feedback from the server
                             $("#add-contact-feedback").html(
                                 `
                                 <span class="text-${responseData.success ? "success" : "danger"}">
@@ -162,26 +172,34 @@ $(() => {
         }
     );
 
+    // On submission of the profile update form...
     $("#profile-update-form").submit(
         e => {
             e.preventDefault();
 
+            // Update the profile information in the database
             db.ref(`user/${currentUser.uid}/`).update({
                 displayName: $("#profile-display-name-input").val(),
             })
+                // Provide success or failure feedback
                 .then(() => $("#profile-update-feedback").html("<p class=\"text-success\">Successfully updated profile.</p>"))
                 .catch(() => $("#profile-update-feedback").html("<p class=\"text=danger\">Error updating profile.</p>"));
         }
     );
 
-    function openChat(contactUid) {
+    // Open a conversation with a contact
+    function openConversation(contactUid) {
+        // Check if the conversation is not already selected
         if (!$(`div#contacts-list > div[name="${contactUid}"]`).hasClass("selected-contact") && currentChatUid != contactUid) {
             markAsUntyping();
             $("#message-input").val("");
 
+            // Store the current conversation contact ID
             currentChatUid = contactUid;
+            // Delete chat history
             $("#chat-history *").remove();
 
+            // Fetch the messages from the server
             getIdToken(idToken =>
                 post("/messages", { idToken: idToken, contact: currentChatUid })
                     .then(response => response.json())
@@ -189,18 +207,25 @@ $(() => {
                         responseData.messages.forEach(message => { outputMessage(message); });
                     }), error => console.log(error));
         }
+        // Apply selection styling to the contacts list
         $("div#contacts-list > div").removeClass("selected-contact");
         $(`div#contacts-list > div[name="${currentChatUid}"]`).addClass("selected-contact");
+        // If not already viewed, mark the conversation as having been viewed
         db.ref(`user/${currentUser.uid}/contacts/${currentChatUid}/recentMessageViewed`).once("value", snapshot => {
             if (!snapshot.val())
                 db.ref(`user/${currentUser.uid}/contacts/${currentChatUid}/recentMessageViewed`).set(true);
         });
     }
 
+    // On database change of the contacts list...
     function updateContactsList(contactListSnapshot) {
+        // Remove everything from the contacts list
         $("#contacts-list *").remove();
+        // If the update contains contacts...
         if (contactListSnapshot.hasChildren()) {
+            // Loop through each contact
             contactListSnapshot.forEach(contact_ => {
+                // Add the contact to the contacts list
                 const contactUid = contact_.key;
                 const contact = contact_.val();
 
@@ -214,7 +239,7 @@ $(() => {
                     .attr("class", "contact")
                     .attr("name", contactUid)
                     .append(displayNameDiv, recentMessageDiv)
-                    .click(function () { openChat(contactUid); });
+                    .click(function () { openConversation(contactUid); });
 
                 if (!contact.recentMessageViewed) recentMessageDiv.addClass("unread");
 
@@ -235,20 +260,29 @@ $(() => {
 
                 $("#contacts-list").prepend(contactDiv);
             });
-            openChat(currentChatUid || $("#contacts-list div:first-child").attr("name"));
+            // Open the previously selected conversation if it exists, else open the first conversation
+            openConversation(currentChatUid || $("#contacts-list div:first-child").attr("name"));
+            // Enable message input
             $("#message-input").prop("disabled", false);
         } else {
+            // If there are no contacts in the update, disable message input
             $("#message-input").prop("disabled", true);
+            // Add a prompt for the user to add contacts
             $("#contacts-list").append("<div class=\"text-center text-primary p-2\"><a href=\"\" data-toggle=\"modal\" data-target=\"#add-contacts-modal\">Add contacts</a></div>");
         }
     }
 
+    // On a database change of the contact requests list...
     function updateContactRequestList(contactRequestSnapshot) {
+        // If there are no contact request, display this to the user
         if (!contactRequestSnapshot.exists()) $("#contact-requests").html("<div class=\"text-center pt-2\">No incoming contact requests.</div>");
         else {
+            // If there are contact request, clear the contact requests area
             $("#contact-requests *").remove();
+            // Loop through each contact request
             contactRequestSnapshot.forEach(
                 contactRequest => {
+                    // Add the contact request to the contact requests list
                     const email = contactRequest.val().email;
                     const acceptButton = $("<button/>")
                         .text("Accept")
@@ -282,9 +316,11 @@ $(() => {
         }
     }
 
+    // Accept a contact request
     function acceptContactRequest(uid) {
         getIdToken(
             idToken => {
+                // Send an acceptcontact POST request to the server
                 post("/acceptcontact", { idToken: idToken, contact: uid })
                     .then(response => response.json())
                     .then(() => {
@@ -298,7 +334,9 @@ $(() => {
         );
     }
 
+    // Decline a contact request
     function removeContactRequest(uid) {
+        // Directly delete the contact request from the database
         db.ref(`user/${currentUser.uid}/contactRequests/${uid}`).remove()
             .then(() => {
                 enableContactInteraction();
@@ -311,30 +349,40 @@ $(() => {
             e.preventDefault();
 
             if (currentChatUid) {
+                // Access the message
                 var messageText = $("#message-input").val();
+                // If the message is not empty or white space
                 if (!isNullOrWhiteSpace(messageText)) {
                     typing = false;
+                    // Empty the message input box
                     $("#message-input").val("");
+                    // Send the message to the client
                     sendMessage(messageText);
                 }
             }
         }
     );
 
+    // Send a message to the current conversation contact
     function sendMessage(messageText) {
         getIdToken(
             idToken => {
                 var timestamp = Date.now();
+                // Send the message information to the server
                 socket.emit("message", { idToken: idToken, targetUid: currentChatUid, text: messageText, timestamp: timestamp });
+                // Output the message locally
                 outputMessage({ senderUid: currentUser.uid, text: messageText, timestamp: timestamp });
             },
             error => console.log(error)
         );
     }
 
+    // Output a message to the message history box
     function outputMessage(messageData) {
         if (currentUser && messageData) {
+            // Derive from the message data whether the message is incoming or outgoing
             var type = messageData.senderUid == currentUser.uid ? "outgoing" : "incoming";
+            // Append the message to the chat history
             $("#chat-history").append(`<div class="message" data-timestamp="${messageData.timestamp}"><div class="${type}">${messageData.text}</div></div>`);
             if (type == "outgoing") scrollToBottom();
             else updateScroll();
@@ -376,6 +424,7 @@ $(() => {
     // Disable message input
     $("#message-input").prop("disabled", false);
 
+    // Handle marking user as typing in conversations
     var typing = false;
     var typingTargetUid = "";
     $("#message-input").on("input", () => {
@@ -410,11 +459,13 @@ $(() => {
 
 function initLogin() {
     var signin = true;
+    // Toggle between signin and signup form
     $("#switch-button").click(() => {
         if (signin) showSignup();
         else showSignin();
     });
 
+    // Show the sign up form
     function showSignup() {
         signin = false;
         $("#switch-button").fadeOut(200, function () {
@@ -427,6 +478,7 @@ function initLogin() {
         $("#title").fadeOut(400, function () { $(this).text("Sign up").fadeIn(400); });
     }
 
+    // Show the sign in form
     function showSignin() {
         signin = true;
         $("#confirm-password-input").val("");
@@ -440,15 +492,18 @@ function initLogin() {
         $("#title").fadeOut(400, function () { $(this).text("Sign in").fadeIn(400); });
     }
 
+    // Clear all sign in / sign up parameters
     function clearSignin() {
         $("#email-input").val("");
         $("#password-input").val("");
         $("#confirm-password-input").val("");
     }
 
+    // On submission of the sign in or sign up form...
     $("#signin-signup-form").submit(function (event) {
         event.preventDefault();
 
+        // Define messages for possible common response codes.
         var signinMessages = {
             "auth/wrong-password": "Invalid email or password.",
             "auth/user-not-found": "Invalid email or password.",
@@ -457,8 +512,11 @@ function initLogin() {
             "auth/email-already-in-use": "This email is already in use."
         };
 
+        // If the form validates correctly
         if (dataValidation())
+            // If the user is signing in
             if (signin)
+                // Send a sign in request to Firebase
                 auth.signInWithEmailAndPassword($("#email-input").val(), $("#password-input").val())
                     .then(resetSignin)
                     .catch(
@@ -469,6 +527,7 @@ function initLogin() {
                         }
                     );
             else
+                // If the user is signing up, send a sign up request to Firebase
                 auth.createUserWithEmailAndPassword($("#email-input").val(), $("#password-input").val())
                     .then(resetSignin)
                     .catch(
@@ -480,24 +539,29 @@ function initLogin() {
                     );
     });
 
+    // Reset the sign in page
     function resetSignin() {
         showSignin();
         clearSignin();
         clearAlerts();
     }
 
+    // Perform data validation on sign in and sign up input fields
     function dataValidation() {
         var errorTitle = signin ? "Error signing in" : "Error signing up";
+        // Check the email is valid
         if (!validEmail($("#email-input").val())) {
             showAlert("danger", errorTitle, "Please enter a valid email.", 5000);
             return false;
         }
 
+        // Check the password is valid
         if ($("#password-input").val().length < 6 || (!signin && $("#confirm-password-input").val().length < 6)) {
             showAlert("danger", errorTitle, "Passwords must be of 6 or more characters in length.", 5000);
             return false;
         }
 
+        // Check the passwords match (if signing up)
         if (!signin && !passwordsMatch()) {
             showAlert("danger", errorTitle, "Please ensure passwords match.", 5000);
             return false;
@@ -506,11 +570,13 @@ function initLogin() {
         return true;
     }
 
+    // Check if the password input matches the confirm password input
     function passwordsMatch() {
         return $("#password-input").val() == $("#confirm-password-input").val();
     }
 
     var alertId = 0;
+    // Show a bootstrap alert
     function showAlert(type, title, message, timeout) {
         $("#alerts").append(`
         <div name="alert-${alertId}" class="alert alert-${type} alert-dismissible fade show">
@@ -532,6 +598,7 @@ function initLogin() {
         alertId++;
     }
 
+    // Clear all bootstrap alerts
     function clearAlerts() {
         $("#alerts *").remove();
     }
