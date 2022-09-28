@@ -20,7 +20,7 @@
   "homepage": "https://github.com/grimm004/ProgNodeChat#readme",
   "dependencies": {
     "express": "^4.17.1",
-    "firebase-admin": "^8.10.0",
+    "firebase-admin": "^11.0.1",
     "socket.io": "^2.5.0"
   },
   "devDependencies": {
