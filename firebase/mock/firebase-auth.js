@@ -3,7 +3,7 @@
 /* global firebase fbMockRequest Promise */
 "use strict";
 
-var currentUser = null;
+let currentUser = null;
 
 // Firebase user class
 class User {
@@ -24,7 +24,8 @@ class User {
     }
 }
 
-var authStateChangedListeners = [];
+const authStateChangedListeners = [];
+
 function triggerAuthStateChanged(user) {
     currentUser = user;
     for (var i = 0; i < authStateChangedListeners.length; i++)

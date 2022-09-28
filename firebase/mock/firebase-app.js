@@ -21,6 +21,7 @@ function fbMockRequest(request, object) {
     });
 }
 
-var firebase = {
-    initializeApp: () => { }
+const firebase = {
+    initializeApp: () => {
+    }
 };

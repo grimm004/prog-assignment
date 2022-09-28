@@ -3,11 +3,12 @@
 /* global firebase io */
 "use strict";
 
-// Acccess firebase auth and database modules
-var auth = firebase.auth(),
-    db = firebase.database();
+// Access firebase auth and database modules
+const auth = firebase.auth(), db = firebase.database();
 
 $(() => {
+    let typing;
+
     /* Window View Control */
     function showSigninWindow() {
         // Hide the chat window divider and show the sign in window divider
@@ -26,14 +27,14 @@ $(() => {
 
     /* Authentication Management */
     // 
-    var currentUser, socket, currentChatUid;
+    let currentUser, socket, currentChatUid;
     auth.onAuthStateChanged(function (user) {
         currentUser = user;
         if (currentUser) onSignin();
         else onSignout();
     });
 
-    var listenerRefs = [];
+    const listenerRefs = [];
 
     function onSignin() {
         // Obtain a database reference to the current user
@@ -112,7 +113,7 @@ $(() => {
         currentChatUid = "";
     }
 
-    // Short-hand function to access an ID token
+    // Shorthand function to access an ID token
     function getIdToken(successCallback, errorCallback) {
         currentUser.getIdToken(true)
             .then(successCallback)
@@ -143,7 +144,7 @@ $(() => {
 
             // Access and validate the target email (checking it is an email and is not the same address as that of the client sending the request)
             const email = $("#contact-email-input").val();
-            if (validEmail(email) && email != currentUser.email)
+            if (validEmail(email) && email !== currentUser.email)
                 getIdToken(idToken => {
                     // POST request to the server to add the email address as a contact
                     post("/addcontact", { idToken: idToken, contactEmail: email })
@@ -350,7 +351,7 @@ $(() => {
 
             if (currentChatUid) {
                 // Access the message
-                var messageText = $("#message-input").val();
+                const messageText = $("#message-input").val();
                 // If the message is not empty or white space
                 if (!isNullOrWhiteSpace(messageText)) {
                     typing = false;
@@ -367,7 +368,7 @@ $(() => {
     function sendMessage(messageText) {
         getIdToken(
             idToken => {
-                var timestamp = Date.now();
+                const timestamp = Date.now();
                 // Send the message information to the server
                 socket.emit("message", { idToken: idToken, targetUid: currentChatUid, text: messageText, timestamp: timestamp });
                 // Output the message locally
@@ -381,7 +382,7 @@ $(() => {
     function outputMessage(messageData) {
         if (currentUser && messageData) {
             // Derive from the message data whether the message is incoming or outgoing
-            var type = messageData.senderUid == currentUser.uid ? "outgoing" : "incoming";
+            const type = messageData.senderUid == currentUser.uid ? "outgoing" : "incoming";
             // Append the message to the chat history
             $("#chat-history").append(`<div class="message" data-timestamp="${messageData.timestamp}"><div class="${type}">${messageData.text}</div></div>`);
             if (type == "outgoing") scrollToBottom();
@@ -389,11 +390,12 @@ $(() => {
         }
     }
 
+    let autoScroll = true;
+
     // Handle automatic scrolling
     $("#chat-history-row").scroll(function () { autoScroll = $(this).scrollTop() + $(this).height() >= this.scrollHeight - 1; });
     $("#signout-button").click(() => auth.signOut());
 
-    var autoScroll = true;
     function updateScroll() {
         if (autoScroll)
             scrollToBottom();
@@ -408,10 +410,10 @@ $(() => {
     // Handle placement of Contacts List
     $(window).on("resize", placeContacts);
 
-    var contactsInSidebar = true;
+    let contactsInSidebar = true;
     placeContacts();
     function placeContacts() {
-        var environment = findBootstrapEnvironment();
+        const environment = findBootstrapEnvironment();
         if (environment == "xs" && contactsInSidebar) {
             contactsInSidebar = false;
             $("#contacts-list").detach().appendTo("#contacts-list-modal-body");
@@ -425,8 +427,8 @@ $(() => {
     $("#message-input").prop("disabled", false);
 
     // Handle marking user as typing in conversations
-    var typing = false;
-    var typingTargetUid = "";
+    typing = false;
+    let typingTargetUid = "";
     $("#message-input").on("input", () => {
         if (typing && $("#message-input").val() == "") markAsUntyping();
         else if (!typing && $("#message-input").val() != "") markAsTyping();
@@ -458,14 +460,14 @@ $(() => {
 });
 
 function initLogin() {
-    var signin = true;
+    let signin = true;
     // Toggle between signin and signup form
     $("#switch-button").click(() => {
         if (signin) showSignup();
         else showSignin();
     });
 
-    // Show the sign up form
+    // Show the sign-up form
     function showSignup() {
         signin = false;
         $("#switch-button").fadeOut(200, function () {
@@ -478,7 +480,7 @@ function initLogin() {
         $("#title").fadeOut(400, function () { $(this).text("Sign up").fadeIn(400); });
     }
 
-    // Show the sign in form
+    // Show the sign-in form
     function showSignin() {
         signin = true;
         $("#confirm-password-input").val("");
@@ -539,7 +541,7 @@ function initLogin() {
                     );
     });
 
-    // Reset the sign in page
+    // Reset the sign-in page
     function resetSignin() {
         showSignin();
         clearSignin();
@@ -548,7 +550,7 @@ function initLogin() {
 
     // Perform data validation on sign in and sign up input fields
     function dataValidation() {
-        var errorTitle = signin ? "Error signing in" : "Error signing up";
+        const errorTitle = signin ? "Error signing in" : "Error signing up";
         // Check the email is valid
         if (!validEmail($("#email-input").val())) {
             showAlert("danger", errorTitle, "Please enter a valid email.", 5000);
@@ -575,7 +577,8 @@ function initLogin() {
         return $("#password-input").val() == $("#confirm-password-input").val();
     }
 
-    var alertId = 0;
+    let alertId = 0;
+
     // Show a bootstrap alert
     function showAlert(type, title, message, timeout) {
         $("#alerts").append(`

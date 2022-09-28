@@ -3,11 +3,13 @@
 /* eslint-env node */
 "use strict";
 
-const clientFileLocation = `${__dirname}\\firebase\\5.9.3`;
+const path = require("path");
+
+const clientFileLocation = path.join(__dirname, "firebase", "5.9.3");
 
 function getFirebase(io) {
     const admin = require("firebase-admin");
-    var adminConfiguration = require("./firebase-admin-config");
+    const adminConfiguration = require("./firebase-admin-config");
     if (adminConfiguration) {
         admin.initializeApp({
             credential: admin.credential.cert(adminConfiguration.credentialData),
@@ -19,13 +21,13 @@ function getFirebase(io) {
             // Serve the active firebase app, auth and database script files.
             switch (req.originalUrl) {
                 case "/firebase/firebase-app.js":
-                    res.sendFile(`${clientFileLocation}\\firebase-app.js`);
+                    res.sendFile(path.join(clientFileLocation, "firebase-app.js"));
                     break;
                 case "/firebase/firebase-auth.js":
-                    res.sendFile(`${clientFileLocation}\\firebase-auth.js`);
+                    res.sendFile(path.join(clientFileLocation, "firebase-auth.js"));
                     break;
                 case "/firebase/firebase-database.js":
-                    res.sendFile(`${clientFileLocation}\\firebase-database.js`);
+                    res.sendFile(path.join(clientFileLocation, "firebase-database.js"));
                     break;
                 case "/firebase/firebase-config.js":
                     res.sendFile(`${__dirname}\\firebase-config.js`);

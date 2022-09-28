@@ -6,21 +6,21 @@ const express = require("express");
 const http = require("http");
 const socketio = require("socket.io");
 
-// Setup the app with socket.io
+// Set up the app with socket.io
 const app = express();
 const httpServer = http.Server(app);
 const io = socketio(httpServer);
 
 // Initialise the app with a firebase admin instance
 function initialiseApp(firebaseAdmin) {
-    // Setup the express middleware
+    // Set up the express middleware
     app.use(express.json());
     app.use(firebaseAdmin.middleware);
     app.use(express.static("public", { extensions: ["html", "htm", "ico", "png"], }));
 
     // Access the authentication and admin modules
-    var auth = firebaseAdmin.auth();
-    var db = firebaseAdmin.database();
+    const auth = firebaseAdmin.auth();
+    const db = firebaseAdmin.database();
 
     // Define short local functions for commonly used firebase functions
     function verifyIdToken(idToken, successCallback, errorCallback) {
@@ -140,9 +140,9 @@ function initialiseApp(firebaseAdmin) {
 
     // Add two users as contacts
     function addAsContacts(contact0, contact1) {
-        var timestamp = Date.now();
+        const timestamp = Date.now();
         // Create conversation node for contacts
-        var conversationId = db.ref("conversation").push({ created: timestamp }).key;
+        const conversationId = db.ref("conversation").push({created: timestamp}).key;
         // Add users as contacts
         db.ref(`user/${contact1.uid}/contacts/${contact0.uid}`).set({ timestamp: timestamp, conversationId: conversationId, recentMessage: "", recentMessageTimestamp: timestamp, recentMessageViewed: false });
         db.ref(`user/${contact0.uid}/contacts/${contact1.uid}`).set({ timestamp: timestamp, conversationId: conversationId, recentMessage: "", recentMessageTimestamp: timestamp, recentMessageViewed: false });
@@ -188,15 +188,23 @@ function initialiseApp(firebaseAdmin) {
                                     // Access the conversation ID
                                     db.ref(`user/${sender.uid}/contacts/${target.uid}/conversationId`).once("value",
                                         conversationId => {
-                                            var messageData = { text: data.text, senderUid: sender.uid, timestamp: data.timestamp };
+                                            const messageData = {
+                                                text: data.text,
+                                                senderUid: sender.uid,
+                                                timestamp: data.timestamp
+                                            };
                                             // Push the message to the conversation in the database
                                             db.ref(`conversation/${conversationId.val()}/messages`).push(messageData);
                                             // Update the conversation information
-                                            var contactUpdate = { recentMessage: data.text, recentMessageTimestamp: data.timestamp, recentMessageViewed: false };
+                                            const contactUpdate = {
+                                                recentMessage: data.text,
+                                                recentMessageTimestamp: data.timestamp,
+                                                recentMessageViewed: false
+                                            };
                                             db.ref(`user/${sender.uid}/contacts/${target.uid}`).update(contactUpdate);
                                             db.ref(`user/${target.uid}/contacts/${sender.uid}`).update(contactUpdate);
                                             // If the target contact is connected, send the message to them
-                                            forEachSocket(clientSocket => { if (clientSocket.uid == target.uid) clientSocket.emit("message", messageData); });
+                                            forEachSocket(clientSocket => { if (clientSocket.uid === target.uid) clientSocket.emit("message", messageData); });
                                         }),
                                 error => {
                                     console.log(error);
@@ -218,7 +226,7 @@ function initialiseApp(firebaseAdmin) {
                 // Verify the client's ID token...
                 data => verifyIdToken(data.idToken,
                     // If connected, inform the target contact the client is typing
-                    sender => forEachSocket(clientSocket => { if (clientSocket.uid == data.targetUid) clientSocket.emit("typing", { senderUid: sender.uid }); }),
+                    sender => forEachSocket(clientSocket => { if (clientSocket.uid === data.targetUid) clientSocket.emit("typing", { senderUid: sender.uid }); }),
                     error => console.log(error))
             );
 
@@ -227,7 +235,7 @@ function initialiseApp(firebaseAdmin) {
             // Verify the client's ID token...
                 data => verifyIdToken(data.idToken,
                     // If connected, inform the target contact the client is no longer typing
-                    sender => forEachSocket(clientSocket => { if (clientSocket.uid == data.targetUid) clientSocket.emit("untyping", { senderUid: sender.uid }); }),
+                    sender => forEachSocket(clientSocket => { if (clientSocket.uid === data.targetUid) clientSocket.emit("untyping", { senderUid: sender.uid }); }),
                     error => console.log(error))
             );
         }

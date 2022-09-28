@@ -4,37 +4,39 @@
 /* global Promise */
 "use strict";
 
-const mockUitls = require("./firebase-mock-utils");
+const mockUtils = require("./firebase-mock-utils");
 const objectPath = require("object-path");
 
-const clientFileLocation = `${__dirname}\\firebase\\mock`;
-var authData = require("./sample-authData.json");
-var database = require("./sample-database.json");
+const authData = require("./sample-authData.json");
+const database = require("./sample-database.json");
+const path = require('path');
 
-var previousDatabase = JSON.parse(JSON.stringify(database));
+const clientFileLocation = path.join(__dirname, "firebase", "mock");
+
+let previousDatabase = JSON.parse(JSON.stringify(database));
 
 function middleware(req, res, next) {
-    if (req.method == "GET")
+    if (req.method === "GET")
         // Serve the mock firebase app, auth and database script files.
         switch (req.originalUrl) {
             case "/firebase/firebase-app.js":
-                res.sendFile(`${clientFileLocation}\\firebase-app.js`);
+                res.sendFile(path.join(clientFileLocation, "firebase-app.js"));
                 break;
             case "/firebase/firebase-auth.js":
-                res.sendFile(`${clientFileLocation}\\firebase-auth.js`);
+                res.sendFile(path.join(clientFileLocation, "firebase-auth.js"));
                 break;
             case "/firebase/firebase-database.js":
-                res.sendFile(`${clientFileLocation}\\firebase-database.js`);
+                res.sendFile(path.join(clientFileLocation, "firebase-database.js"));
                 break;
             case "/firebase/firebase-config.js":
-                res.sendFile(`${__dirname}\\firebase-config.js`);
+                res.sendFile(path.join(__dirname, "firebase-config.js"));
                 break;
             default:
                 // If no firebase script is served, move to the next middleware.
                 next();
                 break;
         }
-    else if (req.method == "POST")
+    else if (req.method === "POST")
         // Switch through the requested location
         switch (req.originalUrl) {
             case "/fbmock-auth-signin":
@@ -48,7 +50,7 @@ function middleware(req, res, next) {
                     res.json({ success: false, error: { code: "auth/email-already-in-use", message: "Email is already in use." } });
                 else {
                     console.log("Signup: '" + req.body.email + "' > " + newUid);
-                    var newUid = mockUitls.generateUID();
+                    var newUid = mockUtils.generateUID();
                     authData.emails[req.body.email] = newUid;
                     authData.accounts[newUid] = { email: req.body.email, signedIn: true };
                     res.json({ success: true, user: { uid: newUid, email: req.body.email } });
@@ -108,7 +110,7 @@ function databaseSet(ref, value) {
 // Update a set of values in the database
 function databaseUpdate(ref, value) {
     console.log("Update: '" + ref + "' > " + JSON.stringify(value));
-    var refData = objectPath.get(database, getDbPath(ref), null);
+    const refData = objectPath.get(database, getDbPath(ref), null);
     if (typeof value === "object" && refData !== null) {
         for (var [entryKey, entryValue] of Object.entries(value))
             if (objectEmpty(entryValue)) objectPath.del(database, getDbPath(ref));
@@ -121,7 +123,7 @@ function databaseUpdate(ref, value) {
 // Push a value to the database
 function databasePush(ref, value) {
     console.log("Push: '" + ref + "' > " + JSON.stringify(value));
-    var pushId = mockUitls.generatePushID();
+    const pushId = mockUtils.generatePushID();
     ref += `/${pushId}`;
     if (!objectEmpty(value)) {
         objectPath.set(database, getDbPath(ref), value);
@@ -134,20 +136,24 @@ function databasePush(ref, value) {
 function databaseRemove(ref) {
     console.log("Remove: '" + ref + "'");
     objectPath.del(database, getDbPath(ref));
-    var refParent = ref.split("/").slice(0, -1).join("/");
+    const refParent = ref.split("/").slice(0, -1).join("/");
     if (objectEmpty(objectPath.get(database, getDbPath(refParent)))) objectPath.del(database, getDbPath(refParent));
     databaseEvent(ref);
 }
+
+const dataListeners = [];
+
+const listenerCallbacks = {};
 
 // Warn client listeners that a database change has occurred
 function databaseEvent(ref) {
     if (JSON.stringify(database) !== JSON.stringify(previousDatabase)) {
         console.log("Database Change:\n" + JSON.stringify(database, null, 4) + "\n");
-        for (var dataListener of dataListeners)
-            if (ref.indexOf(dataListener.ref) == 0)
+        for (const dataListener of dataListeners)
+            if (ref.indexOf(dataListener.ref) === 0)
                 sendRefData(dataListener.socket, "on", dataListener.ref);
-        for (var [listenerRef, listenerCallback] of Object.entries(listenerCallbacks))
-            if (ref.indexOf(listenerRef) == 0)
+        for (const [listenerRef, listenerCallback] of Object.entries(listenerCallbacks))
+            if (ref.indexOf(listenerRef) === 0)
                 listenerCallback();
     }
     previousDatabase = JSON.parse(JSON.stringify(database));
@@ -158,17 +164,16 @@ function sendRefData(socket, type, ref) {
     socket.emit(ref, { listenerType: type, value: objectPath.get(database, getDbPath(ref), null) });
 }
 
-var dataListeners = [];
 // Initialise the socket.io listener
 function initialiseApp(io) {
     if (io) {
         const dbApp = io.of("/fbmock-db");
         dbApp.on("connection", socket => {
-            var listeners = [];
+            const listeners = [];
 
             // Send desired data to user and register a listener
             socket.on("on", data => {
-                var listenerInfo = { socket: socket, ref: data.ref };
+                const listenerInfo = {socket: socket, ref: data.ref};
                 listeners.push(listenerInfo);
                 dataListeners.push(listenerInfo);
                 sendRefData(socket, "on", data.ref);
@@ -177,7 +182,7 @@ function initialiseApp(io) {
             // Unregister a listener
             socket.on("off", () => {
                 while (listeners.length > 0) {
-                    var index = dataListeners.indexOf(listeners.shift());
+                    const index = dataListeners.indexOf(listeners.shift());
                     if (index > -1)
                         dataListeners.splice(index, 1);
                 }
@@ -224,7 +229,7 @@ function verifyIdToken(idToken) {
 // Define the server-side data snapshot class
 class DataSnapshot {
     constructor(ref, data) {
-        var refParts = ref.split("/");
+        const refParts = ref.split("/");
         this.key = refParts[refParts.length - 1];
         this.data = data;
     }
@@ -252,20 +257,19 @@ class DataSnapshot {
     }
 }
 
-var listenerCallbacks = {};
 // Define the server-side reference class
 class Reference {
     constructor(path) {
         // this.reference is formatted without leading or trailing forward slashes
-        if (path[0] == "/") path = path.slice(1);
-        if (path[path.length - 1] == "/") path = path.slice(0, path.length - 2);
+        if (path[0] === "/") path = path.slice(1);
+        if (path[path.length - 1] === "/") path = path.slice(0, path.length - 2);
         this.reference = path;
     }
 
     // Get a child reference
     child(path) {
-        if (path.length == 0) return this;
-        return new Reference(this.reference + (path[0] != "/" ? "/" : "") + path);
+        if (path.length === 0) return this;
+        return new Reference(this.reference + (path[0] !== "/" ? "/" : "") + path);
     }
 
     // Set a database value
